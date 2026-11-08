@@ -38,8 +38,8 @@ URLS=(
 )
 # GCC's own prerequisite versions (contrib/download_prerequisites); isl is not used.
 
-# Host programs: static libstdc++/libgcc so the tarball runs on other distributions.
-HOST_LDFLAGS="-static-libstdc++ -static-libgcc"
+# Host programs fully static: the tarball runs on any x86_64 Linux (any glibc) and in WSL.
+HOST_LDFLAGS=${HOST_LDFLAGS:---static}    # --static: libtool drops a plain -static
 
 say() { printf '\n==== %s\n' "$*"; }
 
@@ -83,7 +83,7 @@ build_gcc() {
     --enable-languages=c --without-headers --with-newlib \
     --disable-shared --disable-threads --disable-tls --disable-nls --without-isl \
     --disable-libssp --disable-libquadmath --disable-libgomp --disable-libatomic \
-    --disable-gcov --disable-bootstrap --disable-plugin --without-zstd \
+    --disable-gcov --disable-bootstrap --disable-plugin --disable-lto --without-zstd \
     --with-pkgversion="FireCore nano -mnano" \
     LDFLAGS="$HOST_LDFLAGS" CFLAGS_FOR_TARGET="-Os -mnano" MAKEINFO=true
   make -j"$J" all-gcc MAKEINFO=true

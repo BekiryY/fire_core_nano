@@ -33,13 +33,19 @@ The toolchain consists of:
 
 ### Prebuilt (x86_64 Linux, WSL)
 
-Download `riscv32-nano-elf-<date>-x86_64-linux.tar.xz` from the GitHub release, then:
+One tarball for every x86_64 Linux distribution (Debian, Ubuntu, Fedora, ...) and for WSL on
+Windows. The host programs are statically linked, so the tarball has no library requirements.
+Download `riscv32-nano-elf-<date>-x86_64-linux.tar.xz` from the
+[releases](https://github.com/BekiryY/fire_core_nano/releases), then:
 
 ```sh
-tar xf riscv32-nano-elf-*-x86_64-linux.tar.xz -C $HOME/opt
+mkdir -p $HOME/opt && tar xf riscv32-nano-elf-*-x86_64-linux.tar.xz -C $HOME/opt
 export PATH=$HOME/opt/riscv32-nano/bin:$PATH
 riscv32-nano-elf-gcc --version
 ```
+
+Windows: install WSL (`wsl --install`) and use the tarball inside it. macOS: no prebuilt yet;
+run `build.sh` (untested there) or use a Linux VM.
 
 ### From source
 
