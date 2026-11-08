@@ -12,3 +12,4 @@ __pycache__/
 cores/*/build/
 **/sw/build/
 **/example/subsystem/build/
+**/bench/*/build/

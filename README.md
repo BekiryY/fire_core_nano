@@ -17,6 +17,8 @@ fire_core_nano/
 │   ├── fc32e1s_nano_fpga/   FPGA build: 32-bit ALU, register file in LUTRAM
 │   ├── fc32e1s_nano_asic/   ASIC build: byte-serial ALU, latch register file, sky130 flow
 │   └── serv/                SERV (Olof Kindgren, ISC), the reference core, with our sky130 flow
+├── common/            shared RTL and testbench models (memories, latch register file)
+├── bench/cpi_test/    one C CPI test for every core (nano FPGA / ASIC, SERV, FPGA subsystem)
 └── results/           FireCore nano vs SERV: sky130 layouts, FPGA synthesis, CPI
 ```
 

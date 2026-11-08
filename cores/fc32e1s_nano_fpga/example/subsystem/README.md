@@ -19,8 +19,6 @@ no flash.
 | `fc32e1s_nano_fpga_subsystem.sv` | `fc32e1s_nano_fpga_subsystem` | core + fetch port + RAM controller + peripheral port; `INIT_FILE` = program image |
 | `fc32e1s_nano_fpga_ram.sv` | `fc32e1s_nano_fpga_ram` | 512 x 32 dual-port RAM, one array per byte lane (4 BSRAM on GW2A) |
 | `fc32e1s_nano_fpga_top.sv` | `fc32e1s_nano_fpga_top` | board top: reset synchronizer, subsystem, LED / counter peripheral |
-| `sw/` | | `cpi_test.c`, start-up, linker script, `build.sh` |
-| `tb/` | | testbench of the top, run by `run_sim.sh` |
 
 ## Address map
 
@@ -41,30 +39,25 @@ The top's peripheral (decoded on address bits 3:2):
 | 0x808 | INSTRET | R, instructions retired since reset |
 | 0x80C | SIM | W, the testbench prints every word written here |
 
-Fetch takes 2 cycles; a RAM load or store takes 2 cycles. `halt_o` goes high on ECALL / EBREAK
-(the start-up code ends with ECALL when `main` returns).
+Fetch takes 2 cycles; a RAM load or store takes 2 cycles. `halt_o` goes high on ECALL / EBREAK.
 
-## Software
+## Software and test
 
-The core has 6 registers (x0, ra, sp, a0..a2): at most 3 arguments per call, and no multiply /
-divide instructions (RV32E without M). `sw/build.sh` compiles with stock GCC restricted to those
-registers (`-ffixed-*`), or with the 6-register GCC (`CC=riscv32-nano-elf-gcc`, `-mnano`), and
-rejects a binary that uses any other register.
+Programs use the shared CPI test set-up in [`bench/cpi_test/`](../../../../bench/cpi_test): the
+same address map (RAM at 0x000, I/O at 0xFFFFF800), start-up code, linker script and
+`build.sh`, which writes the per-lane RAM images (`<prog>_{0..3}.hex`) this subsystem loads.
 
 ```bash
-./sw/build.sh              # sw/cpi_test.c -> sw/build/cpi_test_{0..3}.hex (one file per byte lane)
-./run_sim.sh               # build + xsim: per-kernel cycles, instructions, CPI; PASS / FAIL
+../../../../bench/cpi_test/run.sh fc32e1s_nano_fpga_sub   # build + xsim of this top: PASS, CPI 3.49
 ```
 
-`cpi_test` (1060 B) runs six kernels (sum, Fibonacci, CRC-32, insertion sort, byte loop,
-shift-and-add multiply), checks their results and shows 0x01 on the LEDs when all pass.
-In simulation: **CPI 3.51** over the kernels (17 771 cycles, 5 067 instructions).
+On the board the CPI test shows 0x01 on the LEDs when all its results are correct.
 
 ## GW2A build
 
 ```bash
 cd ../../appl/gw2a/subsystem
-RUN=1 gw_sh fc32e1s_nano_fpga_subsystem.tcl    # needs sw/build/cpi_test_*.hex
+RUN=1 gw_sh fc32e1s_nano_fpga_subsystem.tcl    # needs bench/cpi_test/build/cpi_test_*.hex
 ```
 
 GW2A-LV18PG256C8/I7, the user's standard strategy (`../../appl/gw2a/gw_project.tcl`), pins

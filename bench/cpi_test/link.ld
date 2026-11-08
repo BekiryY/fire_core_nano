@@ -1,4 +1,5 @@
-/* link.ld -- fc32e1s_nano_fpga subsystem: one 2 KiB RAM at 0x000 for code, data and stack. */
+/* link.ld -- CPI test: one 2 KiB RAM at 0x000 for code, data and stack (every testbench and the
+ * fc32e1s_nano_fpga subsystem use this map). */
 OUTPUT_ARCH(riscv)
 ENTRY(_start)
 MEMORY { RAM (rwx) : ORIGIN = 0x000, LENGTH = 2K }

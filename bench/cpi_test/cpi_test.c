@@ -1,21 +1,29 @@
-// cpi_test.c -- CPI test for the fc32e1s_nano_fpga subsystem (fc32e1s_nano_fpga_top).
+// cpi_test.c -- CPI test for every core of this repository (fc32e1s_nano_fpga,
+// fc32e1s_nano_asic, SERV) and the fc32e1s_nano_fpga subsystem: one binary for all of them.
 //
-// Runs six small kernels and measures each with the top's CYCLE and INSTRET counters. Per
-// kernel it writes four words to the SIM register (the testbench prints them): kernel id,
-// cycles, instructions, result. Then it compares every result with the expected value and
-// shows the outcome on the LEDs: 0x01 all pass, 0x80 | id of the first failing kernel.
+// Six small kernels, each bracketed by two writes to the SIM register; the testbench counts
+// the clock cycles and the retired instructions between them, so no core needs counters:
+//   SIM = KSTART | k     kernel k starts
+//   SIM = result         kernel k ends (the next SIM write after a start)
+//   SIM = KDONE | fail   end of the test: 0 all results correct, else 0x80 | first failing k
+// On the FPGA board the LEDs show the outcome: 0x01 pass, 0x80 | k fail.
 //
-// The core has 6 registers (x0, ra, sp, a0..a2): at most 3 arguments per call, and no
+// Memory map (link.ld, the testbenches, the FPGA subsystem): RAM 0x000 - 0x7FF for code, data
+// and stack; I/O at 0xFFFFF800 (one instruction off x0; the nano cores see 0x800 of their
+// 12-bit data address).
+//
+// The nano cores have 6 registers (x0, ra, sp, a0..a2): at most 3 arguments per call, and no
 // multiply / divide (RV32E without M, and libgcc's routines use other registers), so the
-// code below only adds, shifts and compares.
+// kernels only add, shift and compare.
 
 typedef unsigned int u32;
 
 #define REG(off) (*(volatile u32 *)(0xFFFFF800u + (off)))
 #define LED      REG(0x0)
-#define CYCLE    REG(0x4)
-#define INSTRET  REG(0x8)
 #define SIM      REG(0xC)
+
+#define KSTART   0x5A000000u
+#define KDONE    0xD0000000u
 
 #define N 16
 
@@ -92,15 +100,12 @@ static const u32 expect[] = {
 int main(void) {
   u32 fail = 0;
   for (u32 k = 0; k < NK; k++) {
-    u32 c0 = CYCLE, i0 = INSTRET;
-    u32 r  = kernels[k]();
-    u32 c1 = CYCLE, i1 = INSTRET;
-    SIM = k;
-    SIM = c1 - c0;
-    SIM = i1 - i0;
+    SIM = KSTART | k;
+    u32 r = kernels[k]();
     SIM = r;
     if (r != expect[k] && !fail) fail = 0x80 | k;
   }
   LED = fail ? fail : 0x01;
+  SIM = KDONE | fail;
   return 0;
 }

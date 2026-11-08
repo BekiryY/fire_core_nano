@@ -17,6 +17,6 @@ comparator, register file in LUTRAM (4 byte-wide Gowin SSRAMs).
 | Size, Artix-7 | Vivado 2025.2 out-of-context synthesis, 10 ns (`appl/vivado/fc32e1s_nano_fpga_core.tcl`; part xc7z020clg400-1, Artix-7 fabric, no Artix-7 part installed): Default **572 LUT (524 logic + 48 LUTRAM), 59 FF, 21 CARRY4, est. 77.5 MHz**; AreaOptimized_high 529 LUT (481 + 48), est. 81.7 MHz. No block RAM, no DSP. |
 | Verification | `verif/env/spike_iss/run_core_tests.sh` (Spike vs RTL, xsim) |
 | Flows | `appl/gw2a/` (Gowin project of the core alone: `RUN=syn gw_sh appl/gw2a/core/fc32e1s_nano_fpga_core.tcl`) |
-| Subsystem | [`example/subsystem/`](example/subsystem): core + 2 KiB block RAM + peripheral port, board top, C CPI test (CPI 3.51), GW2A project `appl/gw2a/subsystem/` (1225 logic, 4 BSRAM, 61.6 MHz) |
+| Subsystem | [`example/subsystem/`](example/subsystem): core + 2 KiB block RAM + peripheral port, board top, CPI test in `bench/cpi_test` (CPI 3.49), GW2A project `appl/gw2a/subsystem/` (1225 logic, 4 BSRAM, 61.6 MHz) |
 
 The MCU copy (`example/`, `sw/`, `verif/mcu/`) is in `fc32e1s_nano_asic`.
