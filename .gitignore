@@ -1,0 +1,9 @@
+# generated outputs (simulation, synthesis, place & route)
+**/verif/build/
+**/impl/
+xsim.dir/
+*.jou
+*.pb
+*.wdb
+__pycache__/
+*.gprj.user
