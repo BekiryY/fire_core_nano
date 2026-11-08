@@ -1,0 +1,92 @@
+# SERV (serv_rf_top_latch: WITH_CSR = 0, register file = common/rtl/regfile/rf32x32_2r1w_latch.sv,
+# 992 sky130_fd_sc_hd__dlxtp_1 latches behind 31 dlclkp_1 clock gates) -- LibreLane Classic flow,
+# sky130A / sky130_fd_sc_hd, standalone (user 2026-11-08: "a complete serv asic run", density
+# 60 - 67 %, square die is a strict rule). Settings from cores/fc32e1s_nano_asic/appl/sky130_core
+# (its run v73): setup slack margins 0 (repair_timing loops on 0-slack latch D pins otherwise),
+# 36 MHz, the chip's calibrated wire RC, no port buffers, clkbuf_2 clock tree. run_core.sh <tag>.
+DESIGN_NAME: serv_rf_top_latch
+PDK: sky130A
+USE_SLANG: true
+VERILOG_DEFINES: [RF_LATCH_SKY130]
+# RV32E: 16-register latch file (s5 on; s1..s4 RV32I, 32 registers)
+SYNTH_PARAMETERS: [RV32E=1]
+VERILOG_FILES:
+- 'dir::rtl/serv_rf_top_latch.sv'
+- 'dir::../../../../common/rtl/regfile/rf32x32_2r1w_latch.sv'
+- 'dir::../../rtl/serv_alu.v'
+- 'dir::../../rtl/serv_bufreg.v'
+- 'dir::../../rtl/serv_bufreg2.v'
+- 'dir::../../rtl/serv_csr.v'
+- 'dir::../../rtl/serv_ctrl.v'
+- 'dir::../../rtl/serv_decode.v'
+- 'dir::../../rtl/serv_immdec.v'
+- 'dir::../../rtl/serv_mem_if.v'
+- 'dir::../../rtl/serv_rf_if.v'
+- 'dir::../../rtl/serv_rf_ram_if.v'
+- 'dir::../../rtl/serv_state.v'
+- 'dir::../../rtl/serv_aligner.v'
+- 'dir::../../rtl/serv_compdec.v'
+- 'dir::../../rtl/serv_top.v'
+CLOCK_PORT: clk
+# RV32I 68 MHz: s2 (36 MHz) re-timed at ss max RC met up to ~78 MHz; 10-15 % margin (user rule).
+# RV32E 85 MHz: s5 (68 MHz) re-timed met up to 100 MHz (fails at 111).
+CLOCK_PERIOD: 11.7647
+SYNTH_STRATEGY: AREA 0
+# Square die (strict). Final cell utilization (fill excluded) between 60 and 67 %: s1 (relative,
+# 63 % at floorplan) ended at 77.8 % (+9 k um2 repair / clock buffers, taps) on a 257 x 268 die
+# (the default margins: 12 sites left / right, 4 rows top / bottom). Equal margins: 24 sites
+# (11.04 um) left / right, 4 rows (10.88 um) top / bottom.
+FP_SIZING: absolute
+# RV32I: 294 for 64 % (user; s2 292 = 65.1 %, s3 = s2 at 14.7 ns stuck in detailed routing).
+# RV32E: synthesis 24.6k um2 (RV32I 37.7k); s5 240 = 65.1 % (30.8k um2); 238 for ~66 %.
+DIE_AREA: [0, 0, 238, 238]
+LEFT_MARGIN_MULT: 24
+RIGHT_MARGIN_MULT: 24
+# s1: 23 ss slew violations after routing (worst -0.54 ns, a word enable with an antenna diode),
+# one antenna violation (a word enable on met3, ratio 2.05): more repair margin.
+DESIGN_REPAIR_MAX_SLEW_PCT: 30
+GRT_DESIGN_REPAIR_MAX_SLEW_PCT: 30
+GRT_ANTENNA_REPAIR_ITERS: 5
+GRT_ANTENNA_REPAIR_MARGIN: 30
+DRT_ANTENNA_REPAIR_ITERS: 5
+DRT_ANTENNA_REPAIR_MARGIN: 30
+PL_RESIZER_SETUP_SLACK_MARGIN: 0
+GRT_RESIZER_SETUP_SLACK_MARGIN: 0
+RUN_POST_GRT_DESIGN_REPAIR: true
+GRT_ALLOW_CONGESTION: true
+MAX_FANOUT_CONSTRAINT: 16
+MAX_TRANSITION_CONSTRAINT: 1.1
+MAX_CAPACITANCE_CONSTRAINT: 0.22
+DESIGN_REPAIR_MAX_CAP_PCT: 0
+# Clock tree clkbuf_2 only (user, g2): CTS gave each of the 20 register-file gated clocks a root +
+# 2 branch clkbuf_16 (60 x 25 um2 = 7.5 % of the cells, for 8 latches each) and the main tree
+# clkbuf_8 / 16. clkbuf_2: clock buffers 1954 -> 435 um2, cells -7.9 %, wire -20 %, GRT 66.5 ->
+# 53.4 %, detailed routing 48 -> 7 min; ss Fmax 42.5 -> 42.3 MHz (min RC).
+# Clock tree clkbuf_2 only (as fc32e1s_nano_asic g2: the gated latch clocks got clkbuf_16 trees).
+CTS_ROOT_BUFFER: sky130_fd_sc_hd__clkbuf_2
+CTS_CLK_BUFFERS: [sky130_fd_sc_hd__clkbuf_2]
+# block pins connect straight to the logic: no input / output port buffers
+DESIGN_REPAIR_BUFFER_INPUT_PORTS: false
+DESIGN_REPAIR_BUFFER_OUTPUT_PORTS: false
+LAYERS_RC:
+  min_*:
+    li1: {res: 0.07529412, cap: 0.00014467}
+    met1: {res: 0.0008928571, cap: 0.00013983}
+    met2: {res: 0.0008928571, cap: 0.00012852}
+    met3: {res: 0.0001566667, cap: 0.00014139}
+    met4: {res: 0.0001566667, cap: 0.0001252}
+    met5: {res: 1.78125e-05, cap: 0.00014489}
+  nom_*:
+    li1: {res: 0.07529412, cap: 0.00016221}
+    met1: {res: 0.0008928571, cap: 0.00015677}
+    met2: {res: 0.0008928571, cap: 0.0001441}
+    met3: {res: 0.0001566667, cap: 0.00015853}
+    met4: {res: 0.0001566667, cap: 0.00014037}
+    met5: {res: 1.78125e-05, cap: 0.00016246}
+  max_*:
+    li1: {res: 0.07529412, cap: 0.00017536}
+    met1: {res: 0.0008928571, cap: 0.00016949}
+    met2: {res: 0.0008928571, cap: 0.00015578}
+    met3: {res: 0.0001566667, cap: 0.00017138}
+    met4: {res: 0.0001566667, cap: 0.00015175}
+    met5: {res: 1.78125e-05, cap: 0.00017563}

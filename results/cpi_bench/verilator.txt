@@ -1,0 +1,37 @@
+== fc32e1s_nano_fpga / cpi_bench / rv32e / wait 0 (latency 1) / verilator
+   region          cycles       instr     CPI
+   crc             215078       69643   3.088
+   fib             512776      148889   3.444
+   qsort           450044      130249   3.455
+   bsearch         989614      281957   3.510
+   list            302924       88429   3.426
+   interp         1030886      295485   3.489
+   parse           241406       70714   3.414
+   kernels        3742728     1085366   3.448
+   program        4930350     1464911   3.366
+   .text 5500 B, image 5736 B, 1.4 s -> PASS
+== serv_latch_e / cpi_bench / rv32e / wait 0 (latency 1) / verilator
+   region          cycles       instr     CPI
+   crc            2849124       62472  45.606
+   fib            9081744      171083  53.084
+   qsort          4569740       85062  53.722
+   bsearch        8368674      151924  55.085
+   list           5308038       85617  61.997
+   interp        11923220      227272  52.462
+   parse          3026043       57899  52.264
+   kernels       45126583      841329  53.637
+   program       61037635     1101473  55.415
+   .text 4972 B, image 5208 B, 15.6 s -> PASS
+== serv / cpi_bench / rv32i / wait 0 (latency 1) / verilator
+   region          cycles       instr     CPI
+   crc            2849088       62471  45.607
+   fib           11643448      216974  53.663
+   qsort          4196650       76865  54.598
+   bsearch        8368602      151922  55.085
+   list           5307930       85614  61.998
+   interp        10769068      195233  55.160
+   parse          2570327       48559  52.932
+   kernels       45705113      837638  54.564
+   program       60603529     1079823  56.124
+   .text 4628 B, image 4864 B, 15.8 s -> PASS
+

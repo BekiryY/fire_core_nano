@@ -1,0 +1,92 @@
+# fc32e1s_nano_asic core alone -- LibreLane Classic flow, sky130A / sky130_fd_sc_hd (user, 2026-10-30:
+# "synthesize ... alone, 60 % density, as small as possible"). RV32E (nano, no C).
+# Latch register file behind library clock gates (FC32E1S_NANO_ASIC_SKY130_ICG); setup slack margins 0
+# (repair_timing loops on 0-slack latch D pins otherwise, macro flow t-runs). 36 MHz as the MCU
+# chip, the chip's calibrated wire RC. Square core. THE layout: run v73 (2026-11-03, rev 3 RTL): util 73 %
+# (core 149.5 x 149.6 = 55 rows x 325 sites, real 71.7 %), die 153.5 x 155.3 um, DRC / LVS / antenna
+# clean, ss max-RC setup +0.59 ns (d_wdata outputs), ff hold +0.11 ns, 1 net at 1.13 ns slew (ss);
+# ss Fmax 39.5 / 37.0 MHz (min / max RC); detailed routing 47 min. 71 % 155.6 x 157.4; 74 % (core
+# 147.2 x 146.9, real 74.2 %, d74) stuck at 7 - 8 DRT violations after 45 iterations. 0 um core margin
+# (a56) shorts the N / S pins to the edge VGND rail's via stacks; the core corner snaps to whole rows.
+# Before: u66 (66 %, default CTS) 161.3 x 163.0, ss Fmax 42.5 / 40.4 MHz; rev 2 default 181.8 x 192.5.
+# 2026-11-03 (user): no overhead in the standalone layout -- top rtl/fc32e1s_nano_asic_hard.sv drops
+# the constant ports (fetch write channels, PROT, RESP[0]) and shares one data address bus; no port
+# buffers (DESIGN_REPAIR_BUFFER_*_PORTS false); each bus's pins on one side (pin_order.cfg).
+# run_core.sh <tag>.
+DESIGN_NAME: fc32e1s_nano_asic_hard
+PDK: sky130A
+USE_SLANG: true
+VERILOG_DEFINES: [FC32E1S_NANO_ASIC_SKY130_ICG]
+VERILOG_FILES:
+- 'dir::../../rtl/fc32e1s_nano_asic_pkg.sv'
+- 'dir::../../rtl/fc32e1s_nano_asic_alu8.sv'
+- 'dir::../../rtl/fc32e1s_nano_asic_clkgate.sv'
+- 'dir::../../rtl/fc32e1s_nano_asic_core.sv'
+- 'dir::../../rtl/fc32e1s_nano_asic_decoder.sv'
+- 'dir::../../rtl/fc32e1s_nano_asic_fetch.sv'
+- 'dir::../../rtl/fc32e1s_nano_asic_immgen.sv'
+- 'dir::../../rtl/fc32e1s_nano_asic_lsu.sv'
+- 'dir::../../rtl/fc32e1s_nano_asic_pc.sv'
+- 'dir::../../rtl/fc32e1s_nano_asic_regfile.sv'
+- 'dir::../../rtl/fc32e1s_nano_asic_shift.sv'
+- 'dir::rtl/fc32e1s_nano_asic_hard.sv'
+CLOCK_PORT: clk_i
+CLOCK_PERIOD: 27.7778
+SYNTH_STRATEGY: AREA 0
+FP_SIZING: relative
+FP_CORE_UTIL: 73
+FP_ASPECT_RATIO: 1
+PL_RESIZER_SETUP_SLACK_MARGIN: 0
+GRT_RESIZER_SETUP_SLACK_MARGIN: 0
+RUN_POST_GRT_DESIGN_REPAIR: true
+# GRT overflow is an estimate; detailed routing (DRC 0) decides (k3 stopped at 33 overflows).
+GRT_ALLOW_CONGESTION: true
+MAX_FANOUT_CONSTRAINT: 16
+# user 2026-11-03: slew limit 1.1 ns (PDK default 0.75; hd liberty max_transition 1.5, tables to
+# 5 ns), max cap 0.22 pF (PDK 0.2; the liberty's per-pin limits still apply), repair margin 0.
+# g2: 0 slew / cap violations. 1.3 / 0.25 (g3): -0.3 % area, -1 MHz, slews 1.36 - 1.41 ns.
+MAX_TRANSITION_CONSTRAINT: 1.1
+MAX_CAPACITANCE_CONSTRAINT: 0.22
+DESIGN_REPAIR_MAX_CAP_PCT: 0
+# Clock tree clkbuf_2 only (user, g2): CTS gave each of the 20 register-file gated clocks a root +
+# 2 branch clkbuf_16 (60 x 25 um2 = 7.5 % of the cells, for 8 latches each) and the main tree
+# clkbuf_8 / 16. clkbuf_2: clock buffers 1954 -> 435 um2, cells -7.9 %, wire -20 %, GRT 66.5 ->
+# 53.4 %, detailed routing 48 -> 7 min; ss Fmax 42.5 -> 42.3 MHz (min RC).
+CTS_ROOT_BUFFER: sky130_fd_sc_hd__clkbuf_2
+CTS_CLK_BUFFERS: [sky130_fd_sc_hd__clkbuf_2]
+# Pins N + S only, whole buses per side (2026-11-03, rev 3, margins below): N clk / rst, addresses,
+# status, d handshakes, d_rdata (70); S i_rdata, i handshakes, d_wdata / wstrb (73). Route wire
+# N+S k7 70.0 mm, 3 sides k9 71.4, E+W k8 71.9, N+W k6 72.2, even 4 x 36 k10 76.0 (+19 slew);
+# even with these margins on rev 2 (k3) did not route (GRT 73 %).
+IO_PIN_ORDER_CFG: dir::pin_order.cfg
+# Core margin to the die edge (pins): default 4 rows / 12 sites = 10.88 / 5.52 um. 1 row = 2.72 um
+# (0.75 row snaps up to 1, IFP-0028), 4 sites = 1.84 um.
+BOTTOM_MARGIN_MULT: 1
+TOP_MARGIN_MULT: 1
+LEFT_MARGIN_MULT: 4
+RIGHT_MARGIN_MULT: 4
+# block pins connect straight to the logic: no input / output port buffers
+DESIGN_REPAIR_BUFFER_INPUT_PORTS: false
+DESIGN_REPAIR_BUFFER_OUTPUT_PORTS: false
+LAYERS_RC:
+  min_*:
+    li1: {res: 0.07529412, cap: 0.00014467}
+    met1: {res: 0.0008928571, cap: 0.00013983}
+    met2: {res: 0.0008928571, cap: 0.00012852}
+    met3: {res: 0.0001566667, cap: 0.00014139}
+    met4: {res: 0.0001566667, cap: 0.0001252}
+    met5: {res: 1.78125e-05, cap: 0.00014489}
+  nom_*:
+    li1: {res: 0.07529412, cap: 0.00016221}
+    met1: {res: 0.0008928571, cap: 0.00015677}
+    met2: {res: 0.0008928571, cap: 0.0001441}
+    met3: {res: 0.0001566667, cap: 0.00015853}
+    met4: {res: 0.0001566667, cap: 0.00014037}
+    met5: {res: 1.78125e-05, cap: 0.00016246}
+  max_*:
+    li1: {res: 0.07529412, cap: 0.00017536}
+    met1: {res: 0.0008928571, cap: 0.00016949}
+    met2: {res: 0.0008928571, cap: 0.00015578}
+    met3: {res: 0.0001566667, cap: 0.00017138}
+    met4: {res: 0.0001566667, cap: 0.00015175}
+    met5: {res: 1.78125e-05, cap: 0.00017563}
