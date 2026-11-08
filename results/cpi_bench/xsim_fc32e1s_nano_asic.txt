@@ -1,4 +1,4 @@
-== fc32e1s_nano_asic / cpi_bench / rv32e / wait 0 (latency 1) / xsim
+== fc32e1s_nano_asic / cpi_bench / rv32e / wait 0 (latency 1) / xsim / riscv32-nano-elf-gcc -mnano
    region          cycles       instr     CPI
    crc             544844       69643   7.823
    fib            1140040      148889   7.657
@@ -6,7 +6,7 @@
    bsearch        2132441      281957   7.563
    list            736200       88429   8.325
    interp         2017763      295485   6.829
-   parse           542075       70714   7.666
-   kernels        8155466     1085366   7.514
-   program       10837753     1464911   7.398
-   .text 5500 B, image 5736 B, 50.3 s -> PASS
+   parse           543941       71025   7.658
+   kernels        8157332     1085677   7.514
+   program       10839619     1465222   7.398
+   .text 5460 B, image 5696 B, 57.4 s -> PASS

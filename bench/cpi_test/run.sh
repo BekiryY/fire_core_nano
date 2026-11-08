@@ -8,7 +8,10 @@
 #   fc32e1s_nano_fpga       the FPGA core alone          (tb/tb_cpi_nano.sv)
 #   fc32e1s_nano_asic       the ASIC core alone          (tb/tb_cpi_nano.sv)
 #   serv                    SERV, RV32E latch register file (tb/tb_cpi_serv.sv)
+#   serv_nano               SERV running the nano image (same instructions as the nano cores)
 #   fc32e1s_nano_fpga_sub   the FPGA subsystem board top (tb/tb_cpi_fpga_subsystem.sv)
+# Images (build.sh): build/nano/ (-mnano) for the nano cores and serv_nano, build/rv32e/
+# (stock GCC, 16 registers) for serv.
 # Git Bash on Windows or Linux, Vivado xsim on PATH. Work files: build/xsim_<target>/.
 set -u -o pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -16,9 +19,9 @@ REPO="$(cd "$HERE/../.." && pwd)"
 winpath() { if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else echo "$1"; fi; }
 
 TARGETS=("$@")
-[ ${#TARGETS[@]} -gt 0 ] || TARGETS=(fc32e1s_nano_fpga fc32e1s_nano_asic serv fc32e1s_nano_fpga_sub)
+[ ${#TARGETS[@]} -gt 0 ] || TARGETS=(fc32e1s_nano_fpga fc32e1s_nano_asic serv serv_nano fc32e1s_nano_fpga_sub)
 
-"$HERE/build.sh" cpi_test || exit 1
+"$HERE/build.sh" nano cpi_test && "$HERE/build.sh" rv32e cpi_test || exit 1
 
 core_files() {                      # <core>: package first, then the other rtl/<core>_*.sv
   local d="$REPO/cores/$1/rtl"
@@ -29,14 +32,15 @@ core_files() {                      # <core>: package first, then the other rtl/
 rc=0
 for t in "${TARGETS[@]}"; do
   W="$HERE/build/xsim_$t"; mkdir -p "$W"
-  cp "$HERE/build/cpi_test.hex" "$W/image.hex"
-  for i in 0 1 2 3; do cp "$HERE/build/cpi_test_$i.hex" "$W/image_$i.hex"; done
+  abi=nano; [ "$t" = serv ] && abi=rv32e
+  cp "$HERE/build/$abi/cpi_test.hex" "$W/image.hex"
+  for i in 0 1 2 3; do cp "$HERE/build/$abi/cpi_test_$i.hex" "$W/image_$i.hex"; done
   {
     case "$t" in
       fc32e1s_nano_fpga|fc32e1s_nano_asic)
         core_files fc32e1s_nano_fpga; core_files fc32e1s_nano_asic
         top=tb_cpi_${t#fc32e1s_}; tbf=tb_cpi_nano.sv ;;
-      serv)
+      serv|serv_nano)
         for f in alu bufreg bufreg2 csr ctrl decode immdec mem_if rf_if rf_ram_if state aligner \
                  compdec top; do winpath "$REPO/cores/serv/rtl/serv_$f.v"; done
         winpath "$REPO/common/rtl/regfile/rf32x32_2r1w_latch.sv"
@@ -53,7 +57,7 @@ for t in "${TARGETS[@]}"; do
     winpath "$HERE/tb/cpi_monitor.sv"
     winpath "$HERE/tb/$tbf"
   } > "$W/files.f"
-  echo "== $t"
+  echo "== $t ($abi image)"
   ( cd "$W" &&
     { xvlog -sv --nolog -f files.f > xvlog.log 2>&1 || { sed -n 1,30p xvlog.log; exit 1; }; } &&
     { xelab --nolog --timescale 1ns/1ps -s snap "$top" > xelab.log 2>&1 || { grep -m20 ERROR xelab.log; exit 1; }; } &&

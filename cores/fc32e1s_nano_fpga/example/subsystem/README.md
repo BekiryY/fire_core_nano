@@ -48,7 +48,7 @@ same address map (RAM at 0x000, I/O at 0xFFFFF800), start-up code, linker script
 `build.sh`, which writes the per-lane RAM images (`<prog>_{0..3}.hex`) this subsystem loads.
 
 ```bash
-../../../../bench/cpi_test/run.sh fc32e1s_nano_fpga_sub   # build + xsim of this top: PASS, CPI 3.49
+../../../../bench/cpi_test/run.sh fc32e1s_nano_fpga_sub   # build + xsim of this top: PASS, CPI 3.50
 ```
 
 On the board the CPI test shows 0x01 on the LEDs when all its results are correct.
@@ -57,7 +57,7 @@ On the board the CPI test shows 0x01 on the LEDs when all its results are correc
 
 ```bash
 cd ../../appl/gw2a/subsystem
-RUN=1 gw_sh fc32e1s_nano_fpga_subsystem.tcl    # needs bench/cpi_test/build/cpi_test_*.hex
+RUN=1 gw_sh fc32e1s_nano_fpga_subsystem.tcl    # needs bench/cpi_test/build/nano/cpi_test_*.hex
 ```
 
 GW2A-LV18PG256C8/I7, the user's standard strategy (`../../appl/gw2a/gw_project.tcl`), pins
