@@ -13,3 +13,6 @@ cores/*/build/
 **/sw/build/
 **/example/subsystem/build/
 **/bench/*/build/
+# release tarballs written by toolchain/package.sh (uploaded to GitHub releases)
+toolchain/*.tar.xz
+toolchain/*.tar.xz.sha512

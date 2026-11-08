@@ -1,0 +1,4 @@
+# shell scripts, patches and makefiles run in Linux / WSL: keep LF on every checkout
+*.sh      text eol=lf
+*.patch   text eol=lf
+Makefile  text eol=lf

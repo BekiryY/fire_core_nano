@@ -1,0 +1,508 @@
+diff -ruN a/gcc/config/riscv/predicates.md b/gcc/config/riscv/predicates.md
+--- a/gcc/config/riscv/predicates.md
++++ b/gcc/config/riscv/predicates.md
+@@ -192,7 +192,9 @@
+ (define_predicate "call_insn_operand"
+   (ior (match_operand 0 "absolute_symbolic_operand")
+        (match_operand 0 "plt_symbolic_operand")
+-       (match_operand 0 "register_operand")))
++       (and (match_operand 0 "register_operand")
++	    (match_test "!TARGET_NANO
++			 || (REG_P (op) && REGNO (op) == RETURN_ADDR_REGNUM)"))))
+ 
+ (define_predicate "modular_operator"
+   (match_code "plus,minus,mult,ashift"))
+diff -ruN a/gcc/config/riscv/riscv.cc b/gcc/config/riscv/riscv.cc
+--- a/gcc/config/riscv/riscv.cc
++++ b/gcc/config/riscv/riscv.cc
+@@ -3828,6 +3828,13 @@
+ 
+   /* Partition the argument between registers and stack.  */
+   info->num_fprs = 0;
++  if (TARGET_NANO && !return_p
++      && (!named || num_words > MAX_ARGS_IN_REGISTERS - info->gpr_offset))
++    {
++      info->num_gprs = 0;
++      info->stack_p = num_words != 0;
++      return NULL_RTX;
++    }
+   info->num_gprs = MIN (num_words, MAX_ARGS_IN_REGISTERS - info->gpr_offset);
+   info->stack_p = (num_words - info->num_gprs) != 0;
+ 
+@@ -3868,6 +3875,10 @@
+      argument on the stack.  */
+   cum->num_fprs = info.fpr_offset + info.num_fprs;
+   cum->num_gprs = info.gpr_offset + info.num_gprs;
++
++  /* -mnano: once an argument is on the stack, the rest follow it.  */
++  if (TARGET_NANO && info.stack_p)
++    cum->num_gprs = MAX_ARGS_IN_REGISTERS;
+ }
+ 
+ /* Implement TARGET_ARG_PARTIAL_BYTES.  */
+@@ -3965,7 +3976,7 @@
+     riscv_function_arg_advance (pack_cumulative_args (&local_cum), arg);
+ 
+   /* Found out how many registers we need to save.  */
+-  gp_saved = MAX_ARGS_IN_REGISTERS - local_cum.num_gprs;
++  gp_saved = TARGET_NANO ? 0 : MAX_ARGS_IN_REGISTERS - local_cum.num_gprs;
+ 
+   if (!no_rtl && gp_saved > 0)
+     {
+@@ -4088,6 +4099,15 @@
+ rtx
+ riscv_legitimize_call_address (rtx addr)
+ {
++  /* -mnano: a pseudo target cannot be reloaded at the call (a0..a2 hold arguments,
++     ra is clobbered by the call), so every non-symbolic target goes to ra here.  */
++  if (TARGET_NANO && !(GET_CODE (addr) == SYMBOL_REF && call_insn_operand (addr, VOIDmode)))
++    {
++      rtx reg = gen_rtx_REG (Pmode, RETURN_ADDR_REGNUM);
++      riscv_emit_move (reg, addr);
++      return reg;
++    }
++
+   if (!call_insn_operand (addr, VOIDmode))
+     {
+       rtx reg = RISCV_CALL_ADDRESS_TEMP (Pmode);
+@@ -5290,6 +5310,10 @@
+   if (cfun->machine->naked_p)
+     return;
+ 
++  if (TARGET_NANO && frame_pointer_needed)
++    error ("%<-mnano%> has no frame pointer register (s0): "
++	   "%<alloca%> and variable-length arrays are not supported");
++
+   /* When optimizing for size, call a subroutine to save the registers.  */
+   if (riscv_use_save_libcall (frame))
+     {
+@@ -5357,6 +5381,18 @@
+ 				GEN_INT (-constant_frame));
+ 	  RTX_FRAME_RELATED_P (emit_insn (insn)) = 1;
+ 	}
++      else if (TARGET_NANO)
++	{
++	  /* No temporary register: adjust in addi steps.  */
++	  for (HOST_WIDE_INT left = constant_frame; left > 0; )
++	    {
++	      HOST_WIDE_INT step = MIN (left, (HOST_WIDE_INT) 2032);
++	      insn = gen_add3_insn (stack_pointer_rtx, stack_pointer_rtx,
++				    GEN_INT (-step));
++	      RTX_FRAME_RELATED_P (emit_insn (insn)) = 1;
++	      left -= step;
++	    }
++	}
+       else
+ 	{
+ 	  riscv_emit_move (RISCV_PROLOGUE_TEMP (Pmode), GEN_INT (-constant_frame));
+@@ -5513,7 +5549,15 @@
+       if (step1.to_constant () != 0)
+ 	{
+ 	  rtx adjust = GEN_INT (step1.to_constant ());
+-	  if (!SMALL_OPERAND (step1.to_constant ()))
++	  if (TARGET_NANO && !SMALL_OPERAND (step1.to_constant ()))
++	    {
++	      HOST_WIDE_INT left = step1.to_constant ();
++	      for (; !SMALL_OPERAND (left); left -= 2032)
++		emit_insn (gen_add3_insn (stack_pointer_rtx, stack_pointer_rtx,
++					  GEN_INT (2032)));
++	      adjust = GEN_INT (left);
++	    }
++	  else if (!SMALL_OPERAND (step1.to_constant ()))
+ 	    {
+ 	      riscv_emit_move (RISCV_PROLOGUE_TEMP (Pmode), adjust);
+ 	      adjust = RISCV_PROLOGUE_TEMP (Pmode);
+@@ -6286,6 +6330,20 @@
+   if (TARGET_RVE && riscv_abi != ABI_ILP32E)
+     error ("rv32e requires ilp32e ABI");
+ 
++  if (TARGET_NANO)
++    {
++      if (riscv_abi != ABI_ILP32E)
++	error ("%<-mnano%> requires %<-mabi=ilp32e%>");
++      if (TARGET_SAVE_RESTORE)
++	error ("%<-mnano%> is incompatible with %<-msave-restore%>");
++      flag_omit_frame_pointer = 1;
++      /* CSE through jumps keeps constants live across branches; with four allocatable
++	 registers LRA then spills and reloads the same pseudos forever (picolibc libm,
++	 stdio, xdr at -Os/-O2).  */
++      if (!global_options_set.x_flag_cse_follow_jumps)
++	flag_cse_follow_jumps = 0;
++    }
++
+   // Zfinx require abi ilp32,ilp32e or lp64.
+   if (TARGET_ZFINX && riscv_abi != ABI_ILP32
+       && riscv_abi != ABI_LP64 && riscv_abi != ABI_ILP32E)
+@@ -6389,6 +6447,15 @@
+ 	call_used_regs[r] = 1;
+     }
+ 
++  /* -mnano: only x0, ra, sp and a0..a2 exist.  */
++  if (TARGET_NANO)
++    {
++      static const int nano_absent[] = { 3, 4, 5, 6, 7, 8, 9, 13, 14, 15 };
++      for (int r : nano_absent)
++	fixed_regs[r] = call_used_regs[r] = 1;
++      SET_HARD_REG_BIT (reg_class_contents[JALR_REGS], RETURN_ADDR_REGNUM);
++    }
++
+   if (!TARGET_HARD_FLOAT)
+     {
+       for (int regno = FP_REG_FIRST; regno <= FP_REG_LAST; regno++)
+@@ -6568,6 +6635,10 @@
+ riscv_function_ok_for_sibcall (tree decl ATTRIBUTE_UNUSED,
+ 			       tree exp ATTRIBUTE_UNUSED)
+ {
++  /* -mnano: an indirect sibcall has no free register for its target.  */
++  if (TARGET_NANO && decl == NULL_TREE)
++    return false;
++
+   /* Don't use sibcalls when use save-restore routine.  */
+   if (TARGET_SAVE_RESTORE)
+     return false;
+diff -ruN a/gcc/config/riscv/riscv-c.cc b/gcc/config/riscv/riscv-c.cc
+--- a/gcc/config/riscv/riscv-c.cc
++++ b/gcc/config/riscv/riscv-c.cc
+@@ -95,6 +95,9 @@
+       break;
+     }
+ 
++  if (TARGET_NANO)
++    builtin_define ("__riscv_nano");
++
+   switch (riscv_cmodel)
+     {
+     case CM_MEDLOW:
+diff -ruN a/gcc/config/riscv/riscv.h b/gcc/config/riscv/riscv.h
+--- a/gcc/config/riscv/riscv.h
++++ b/gcc/config/riscv/riscv.h
+@@ -134,9 +134,10 @@
+ 
+ /* Describe how we implement __builtin_eh_return.  */
+ #define EH_RETURN_DATA_REGNO(N) \
+-  ((N) < 4 ? (N) + GP_ARG_FIRST : INVALID_REGNUM)
++  ((N) < (TARGET_NANO ? 2 : 4) ? (N) + GP_ARG_FIRST : INVALID_REGNUM)
+ 
+-#define EH_RETURN_STACKADJ_RTX  gen_rtx_REG (Pmode, GP_ARG_FIRST + 4)
++#define EH_RETURN_STACKADJ_RTX \
++  gen_rtx_REG (Pmode, GP_ARG_FIRST + (TARGET_NANO ? 2 : 4))
+ 
+ /* Target machine storage layout */
+ 
+@@ -635,7 +636,9 @@
+ #define GP_RETURN GP_ARG_FIRST
+ #define FP_RETURN (UNITS_PER_FP_ARG == 0 ? GP_RETURN : FP_ARG_FIRST)
+ 
+-#define MAX_ARGS_IN_REGISTERS (riscv_abi == ABI_ILP32E ? 6 : 8)
++#define TARGET_NANO (riscv_nano)
++#define MAX_ARGS_IN_REGISTERS \
++  (TARGET_NANO ? 3 : riscv_abi == ABI_ILP32E ? 6 : 8)
+ 
+ /* Symbolic macros for the first/last argument registers.  */
+ 
+diff -ruN a/gcc/config/riscv/riscv.md b/gcc/config/riscv/riscv.md
+--- a/gcc/config/riscv/riscv.md
++++ b/gcc/config/riscv/riscv.md
+@@ -2772,10 +2772,11 @@
+   [(call (mem:SI (match_operand 0 "call_insn_operand" "j,S,U"))
+ 	 (match_operand 1 "" ""))]
+   "SIBLING_CALL_P (insn)"
+-  "@
+-   jr\t%0
+-   tail\t%0
+-   tail\t%0@plt"
++  {
++    static const char *const std_tpl[] = { "jr\t%0", "tail\t%0", "tail\t%0@plt" };
++    static const char *const nano_tpl[] = { "jr\t%0", "j\t%0", "j\t%0" };
++    return (TARGET_NANO ? nano_tpl : std_tpl)[which_alternative];
++  }
+   [(set_attr "type" "call")])
+ 
+ (define_expand "sibcall_value"
+@@ -2795,10 +2796,11 @@
+ 	(call (mem:SI (match_operand 1 "call_insn_operand" "j,S,U"))
+ 	      (match_operand 2 "" "")))]
+   "SIBLING_CALL_P (insn)"
+-  "@
+-   jr\t%1
+-   tail\t%1
+-   tail\t%1@plt"
++  {
++    static const char *const std_tpl[] = { "jr\t%1", "tail\t%1", "tail\t%1@plt" };
++    static const char *const nano_tpl[] = { "jr\t%1", "j\t%1", "j\t%1" };
++    return (TARGET_NANO ? nano_tpl : std_tpl)[which_alternative];
++  }
+   [(set_attr "type" "call")])
+ 
+ (define_expand "call"
+diff -ruN a/gcc/config/riscv/riscv.opt b/gcc/config/riscv/riscv.opt
+--- a/gcc/config/riscv/riscv.opt
++++ b/gcc/config/riscv/riscv.opt
+@@ -95,6 +95,11 @@
+ Target Joined UInteger Var(g_switch_value) Init(8)
+ -msmall-data-limit=N	Put global and static data smaller than <number> bytes into a special section (on some targets).
+ 
++mnano
++Target Var(riscv_nano) Init(0)
++Use the 6-register nano ABI (x0, ra, sp, a0-a2): at most 3 integer argument registers,
++gp, tp, t0-t2, s0, s1 and a3-a5 never used.
++
+ msave-restore
+ Target Mask(SAVE_RESTORE)
+ Use smaller but slower prologue and epilogue code.
+diff -ruN a/gcc/expr.cc b/gcc/expr.cc
+--- a/gcc/expr.cc
++++ b/gcc/expr.cc
+@@ -4922,7 +4922,8 @@
+ 	  size = gen_int_mode (GET_MODE_SIZE (mode), Pmode);
+ 	  if (!MEM_P (xinner))
+ 	    {
+-	      temp = assign_temp (type, 1, 1);
++	      temp = type ? assign_temp (type, 1, 1)
++			  : assign_stack_temp (mode, GET_MODE_SIZE (mode));
+ 	      emit_move_insn (temp, xinner);
+ 	      xinner = temp;
+ 	    }
+diff -ruN a/gcc/lra-assigns.cc b/gcc/lra-assigns.cc
+--- a/gcc/lra-assigns.cc
++++ b/gcc/lra-assigns.cc
+@@ -1693,6 +1693,10 @@
+     internal_error
+       ("maximum number of LRA assignment passes is achieved (%d)",
+        LRA_MAX_ASSIGNMENT_ITERATION_NUMBER);
++  if (lra_assignment_iter_after_spill > 10 * LRA_MAX_ASSIGNMENT_ITERATION_NUMBER)
++    fatal_error (DECL_SOURCE_LOCATION (current_function_decl),
++		 "register allocation does not converge in %qD; "
++		 "try %<-O1%> or simplify the function", current_function_decl);
+   /* Reset the assignment correctness flag: */
+   check_and_force_assignment_correctness_p = false;
+   return no_spills_p;
+diff -ruN a/libgcc/config/riscv/div.S b/libgcc/config/riscv/div.S
+--- a/libgcc/config/riscv/div.S
++++ b/libgcc/config/riscv/div.S
+@@ -25,6 +25,89 @@
+ 
+ #include "riscv-asm.h"
+ 
++#ifdef __riscv_nano
++/* -mnano division: a0..a2, ra, sp only.  __udivsi3 is restoring division
++   (32 iterations, ra the counter) and leaves the remainder in a2.  Division
++   by zero gives the RISC-V results for the unsigned forms (quotient all ones,
++   remainder the dividend).  */
++  .text
++  .align 2
++FUNC_BEGIN (__udivsi3)
++  addi  sp, sp, -4
++  sw    ra, 0(sp)
++  li    a2, 0
++  li    ra, 32
++1:
++  slli  a2, a2, 1
++  bgez  a0, 2f
++  ori   a2, a2, 1
++2:
++  slli  a0, a0, 1
++  bltu  a2, a1, 3f
++  sub   a2, a2, a1
++  ori   a0, a0, 1
++3:
++  addi  ra, ra, -1
++  bnez  ra, 1b
++  lw    ra, 0(sp)
++  addi  sp, sp, 4
++  ret
++FUNC_END (__udivsi3)
++
++FUNC_BEGIN (__umodsi3)
++  addi  sp, sp, -4
++  sw    ra, 0(sp)
++  call  __udivsi3
++  mv    a0, a2
++  lw    ra, 0(sp)
++  addi  sp, sp, 4
++  ret
++FUNC_END (__umodsi3)
++
++/* Signed: truncate toward zero, remainder has the sign of the dividend.  */
++FUNC_BEGIN (__divsi3)
++  addi  sp, sp, -8
++  sw    ra, 4(sp)
++  xor   a2, a0, a1
++  sw    a2, 0(sp)
++  bgez  a0, 1f
++  neg   a0, a0
++1:
++  bgez  a1, 2f
++  neg   a1, a1
++2:
++  call  __udivsi3
++  lw    a2, 0(sp)
++  bgez  a2, 3f
++  neg   a0, a0
++3:
++  lw    ra, 4(sp)
++  addi  sp, sp, 8
++  ret
++FUNC_END (__divsi3)
++
++FUNC_BEGIN (__modsi3)
++  addi  sp, sp, -8
++  sw    ra, 4(sp)
++  sw    a0, 0(sp)
++  bgez  a0, 1f
++  neg   a0, a0
++1:
++  bgez  a1, 2f
++  neg   a1, a1
++2:
++  call  __udivsi3
++  mv    a0, a2
++  lw    a2, 0(sp)
++  bgez  a2, 3f
++  neg   a0, a0
++3:
++  lw    ra, 4(sp)
++  addi  sp, sp, 8
++  ret
++FUNC_END (__modsi3)
++#else /* !__riscv_nano */
++
+   .text
+   .align 2
+ 
+@@ -148,3 +231,4 @@
+   ret
+ FUNC_END (__divsi3)
+ #endif
++#endif /* __riscv_nano */
+diff -ruN a/libgcc/config/riscv/muldi3.S b/libgcc/config/riscv/muldi3.S
+--- a/libgcc/config/riscv/muldi3.S
++++ b/libgcc/config/riscv/muldi3.S
+@@ -25,6 +25,29 @@
+ 
+ #include "riscv-asm.h"
+ 
++#ifdef __riscv_nano
++/* -mnano __mulsi3: a0 = a0 * a1, shift-and-add; ra is the bit-test temporary.  */
++  .text
++  .align 2
++FUNC_BEGIN (__mulsi3)
++  addi  sp, sp, -4
++  sw    ra, 0(sp)
++  mv    a2, a0
++  li    a0, 0
++1:
++  andi  ra, a1, 1
++  beqz  ra, 2f
++  add   a0, a0, a2
++2:
++  slli  a2, a2, 1
++  srli  a1, a1, 1
++  bnez  a1, 1b
++  lw    ra, 0(sp)
++  addi  sp, sp, 4
++  ret
++FUNC_END (__mulsi3)
++#else /* !__riscv_nano */
++
+   .text
+   .align 2
+ 
+@@ -46,3 +69,4 @@
+   bnez   a1, .L1
+   ret
+ FUNC_END (__muldi3)
++#endif /* __riscv_nano */
+diff -ruN a/libgcc/config/riscv/nano-div64.c b/libgcc/config/riscv/nano-div64.c
+--- a/libgcc/config/riscv/nano-div64.c
++++ b/libgcc/config/riscv/nano-div64.c
+@@ -0,0 +1,53 @@
++/* -mnano 64-bit division: restoring shift-subtract, 64 iterations; small, not fast.
++   Division by zero gives the RISC-V results (unsigned quotient all ones, remainder
++   the dividend; signed as the RV64 div / rem instructions).  */
++
++typedef unsigned long long u64;
++typedef long long s64;
++
++static u64
++nano_udivmod (u64 n, u64 d, u64 *rem)
++{
++  u64 r = 0;
++  for (int i = 0; i < 64; i++)
++    {
++      r = (r << 1) | (n >> 63);
++      n <<= 1;
++      if (r >= d)
++	{
++	  r -= d;
++	  n |= 1;
++	}
++    }
++  *rem = r;
++  return n;
++}
++
++u64 __udivdi3 (u64 n, u64 d) { u64 r; return nano_udivmod (n, d, &r); }
++u64 __umoddi3 (u64 n, u64 d) { u64 r; nano_udivmod (n, d, &r); return r; }
++
++u64
++__udivmoddi4 (u64 n, u64 d, u64 *rem)
++{
++  u64 r;
++  u64 q = nano_udivmod (n, d, &r);
++  if (rem)
++    *rem = r;
++  return q;
++}
++
++s64
++__divdi3 (s64 a, s64 b)
++{
++  u64 r;
++  u64 q = nano_udivmod (a < 0 ? -(u64) a : (u64) a, b < 0 ? -(u64) b : (u64) b, &r);
++  return (a < 0) != (b < 0) && b != 0 ? -(s64) q : (s64) q;
++}
++
++s64
++__moddi3 (s64 a, s64 b)
++{
++  u64 r;
++  nano_udivmod (a < 0 ? -(u64) a : (u64) a, b < 0 ? -(u64) b : (u64) b, &r);
++  return a < 0 ? -(s64) r : (s64) r;
++}
+diff -ruN a/libgcc/config/riscv/save-restore.S b/libgcc/config/riscv/save-restore.S
+--- a/libgcc/config/riscv/save-restore.S
++++ b/libgcc/config/riscv/save-restore.S
+@@ -25,6 +25,10 @@
+ 
+ #include "riscv-asm.h"
+ 
++#ifdef __riscv_nano
++/* -mnano: no save / restore millicode (-msave-restore is rejected).  */
++#else /* !__riscv_nano */
++
+   .text
+ 
+ #if __riscv_xlen == 64
+@@ -532,3 +536,4 @@
+ #endif /* __riscv_32e */
+ 
+ #endif /* __riscv_xlen == 64 */
++#endif /* __riscv_nano */
+diff -ruN a/libgcc/config/riscv/t-elf b/libgcc/config/riscv/t-elf
+--- a/libgcc/config/riscv/t-elf
++++ b/libgcc/config/riscv/t-elf
+@@ -4,5 +4,13 @@
+ 	   $(srcdir)/config/riscv/div.S \
+ 	   $(srcdir)/config/riscv/atomic.c \
+ 
++ifneq (,$(findstring -mnano,$(CFLAGS)))
++LIB2ADDEH =
++LIB2ADDEHSTATIC =
++LIB2ADDEHSHARED =
++LIB2FUNCS_EXCLUDE += _udivdi3 _umoddi3 _divdi3 _moddi3 _udivmoddi4
++LIB2ADD += $(srcdir)/config/riscv/nano-div64.c
++endif
++
+ # Avoid the full unwinder being pulled along with the division libcalls.
+ LIB2_DIVMOD_EXCEPTION_FLAGS := -fasynchronous-unwind-tables

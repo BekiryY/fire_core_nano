@@ -1,0 +1,213 @@
+diff -ruN a/newlib/libc/machine/riscv/memcpy-asm.S b/newlib/libc/machine/riscv/memcpy-asm.S
+--- a/newlib/libc/machine/riscv/memcpy-asm.S
++++ b/newlib/libc/machine/riscv/memcpy-asm.S
+@@ -1,3 +1,27 @@
++/* -mnano (riscv32-nano-elf-gcc): x0, ra, sp, a0..a2 only. */
++#ifdef __riscv_nano
++
++/* void *memcpy (void *d, const void *s, size_t n): ra is the byte temporary. */
++	.section .text.memcpy
++	.global memcpy
++	.type	memcpy, @function
++memcpy:
++	addi	sp, sp, -8
++	sw	ra, 4(sp)
++	sw	a0, 0(sp)
++1:	beqz	a2, 2f
++	lbu	ra, 0(a1)
++	sb	ra, 0(a0)
++	addi	a0, a0, 1
++	addi	a1, a1, 1
++	addi	a2, a2, -1
++	j	1b
++2:	lw	a0, 0(sp)
++	lw	ra, 4(sp)
++	addi	sp, sp, 8
++	ret
++	.size	memcpy, .-memcpy
++#else /* !__riscv_nano */
+ /* Copyright (c) 2019  SiFive Inc. All rights reserved.
+ 
+    This copyrighted material is made available to anyone wishing to use,
+@@ -32,3 +56,4 @@
+ 
+   .size	memcpy, .-memcpy
+ #endif
++#endif /* __riscv_nano */
+diff -ruN a/newlib/libc/machine/riscv/memcpy.c b/newlib/libc/machine/riscv/memcpy.c
+--- a/newlib/libc/machine/riscv/memcpy.c
++++ b/newlib/libc/machine/riscv/memcpy.c
+@@ -1,3 +1,4 @@
++#ifndef __riscv_nano
+ /* Copyright (c) 2017  SiFive Inc. All rights reserved.
+ 
+    This copyrighted material is made available to anyone wishing to use,
+@@ -97,3 +98,4 @@
+   return aa;
+ }
+ #endif
++#endif /* !__riscv_nano */
+diff -ruN a/newlib/libc/machine/riscv/memmove.S b/newlib/libc/machine/riscv/memmove.S
+--- a/newlib/libc/machine/riscv/memmove.S
++++ b/newlib/libc/machine/riscv/memmove.S
+@@ -1,3 +1,37 @@
++/* -mnano (riscv32-nano-elf-gcc): x0, ra, sp, a0..a2 only. */
++#ifdef __riscv_nano
++
++/* void *memmove (void *d, const void *s, size_t n): forward if d <= s, else backward. */
++	.section .text.memmove
++	.global memmove
++	.type	memmove, @function
++memmove:
++	addi	sp, sp, -8
++	sw	ra, 4(sp)
++	sw	a0, 0(sp)
++	bleu	a0, a1, 2f
++	add	a0, a0, a2		/* backward: from the ends */
++	add	a1, a1, a2
++1:	beqz	a2, 3f
++	addi	a0, a0, -1
++	addi	a1, a1, -1
++	lbu	ra, 0(a1)
++	sb	ra, 0(a0)
++	addi	a2, a2, -1
++	j	1b
++2:	beqz	a2, 3f
++	lbu	ra, 0(a1)
++	sb	ra, 0(a0)
++	addi	a0, a0, 1
++	addi	a1, a1, 1
++	addi	a2, a2, -1
++	j	2b
++3:	lw	a0, 0(sp)
++	lw	ra, 4(sp)
++	addi	sp, sp, 8
++	ret
++	.size	memmove, .-memmove
++#else /* !__riscv_nano */
+ /* Copyright (c) 2019  SiFive Inc. All rights reserved.
+ 
+    This copyrighted material is made available to anyone wishing to use,
+@@ -40,3 +74,4 @@
+ 
+   .size	memmove, .-memmove
+ #endif
++#endif /* __riscv_nano */
+diff -ruN a/newlib/libc/machine/riscv/memmove-stub.c b/newlib/libc/machine/riscv/memmove-stub.c
+--- a/newlib/libc/machine/riscv/memmove-stub.c
++++ b/newlib/libc/machine/riscv/memmove-stub.c
+@@ -1,3 +1,4 @@
++#ifndef __riscv_nano
+ /* Copyright (c) 2019  SiFive Inc. All rights reserved.
+ 
+    This copyrighted material is made available to anyone wishing to use,
+@@ -14,3 +15,4 @@
+ #if !defined(__PREFER_SIZE_OVER_SPEED) && !defined(__OPTIMIZE_SIZE__)
+ #include "../../string/memmove.c"
+ #endif
++#endif /* !__riscv_nano */
+diff -ruN a/newlib/libc/machine/riscv/memset.S b/newlib/libc/machine/riscv/memset.S
+--- a/newlib/libc/machine/riscv/memset.S
++++ b/newlib/libc/machine/riscv/memset.S
+@@ -1,3 +1,23 @@
++/* -mnano (riscv32-nano-elf-gcc): x0, ra, sp, a0..a2 only. */
++#ifdef __riscv_nano
++
++/* void *memset (void *d, int c, size_t n) */
++	.section .text.memset
++	.global memset
++	.type	memset, @function
++memset:
++	addi	sp, sp, -4
++	sw	a0, 0(sp)
++1:	beqz	a2, 2f
++	sb	a1, 0(a0)
++	addi	a0, a0, 1
++	addi	a2, a2, -1
++	j	1b
++2:	lw	a0, 0(sp)
++	addi	sp, sp, 4
++	ret
++	.size	memset, .-memset
++#else /* !__riscv_nano */
+ /* Copyright (c) 2017  SiFive Inc. All rights reserved.
+ 
+    This copyrighted material is made available to anyone wishing to use,
+@@ -113,3 +133,4 @@
+   j .Laligned
+ #endif
+   .size	memset, .-memset
++#endif /* __riscv_nano */
+diff -ruN a/newlib/libc/machine/riscv/setjmp.S b/newlib/libc/machine/riscv/setjmp.S
+--- a/newlib/libc/machine/riscv/setjmp.S
++++ b/newlib/libc/machine/riscv/setjmp.S
+@@ -1,3 +1,29 @@
++/* -mnano (riscv32-nano-elf-gcc): x0, ra, sp, a0..a2 only. */
++#ifdef __riscv_nano
++
++/* int setjmp (jmp_buf): -mnano has no callee-saved registers, so ra and sp are the
++   whole context. void longjmp (jmp_buf, int val): returns val, or 1 if val is 0. */
++	.section .text.setjmp
++	.global setjmp
++	.type	setjmp, @function
++setjmp:
++	sw	ra, 0(a0)
++	sw	sp, 4(a0)
++	li	a0, 0
++	ret
++	.size	setjmp, .-setjmp
++
++	.section .text.longjmp
++	.global longjmp
++	.type	longjmp, @function
++longjmp:
++	lw	ra, 0(a0)
++	lw	sp, 4(a0)
++	seqz	a0, a1
++	add	a0, a0, a1
++	ret
++	.size	longjmp, .-longjmp
++#else /* !__riscv_nano */
+ /* Copyright (c) 2017  SiFive Inc. All rights reserved.
+ 
+    This copyrighted material is made available to anyone wishing to use,
+@@ -100,3 +126,4 @@
+ 	add  a0, a0, a1   # a0 = (a1 == 0) ? 1 : a1
+ 	ret
+ 	.size	longjmp, .-longjmp
++#endif /* __riscv_nano */
+diff -ruN a/newlib/libc/machine/riscv/strcmp.S b/newlib/libc/machine/riscv/strcmp.S
+--- a/newlib/libc/machine/riscv/strcmp.S
++++ b/newlib/libc/machine/riscv/strcmp.S
+@@ -1,3 +1,26 @@
++/* -mnano (riscv32-nano-elf-gcc): x0, ra, sp, a0..a2 only. */
++#ifdef __riscv_nano
++
++/* int strcmp (const char *a, const char *b): a2 and ra hold the two bytes. */
++	.section .text.strcmp
++	.global strcmp
++	.type	strcmp, @function
++strcmp:
++	addi	sp, sp, -4
++	sw	ra, 0(sp)
++1:	lbu	a2, 0(a0)
++	lbu	ra, 0(a1)
++	bne	a2, ra, 2f
++	beqz	a2, 2f
++	addi	a0, a0, 1
++	addi	a1, a1, 1
++	j	1b
++2:	sub	a0, a2, ra
++	lw	ra, 0(sp)
++	addi	sp, sp, 4
++	ret
++	.size	strcmp, .-strcmp
++#else /* !__riscv_nano */
+ /* Copyright (c) 2017  SiFive Inc. All rights reserved.
+ 
+    This copyrighted material is made available to anyone wishing to use,
+@@ -202,3 +225,4 @@
+ .size	strcmp, .-strcmp
+ 
+ #endif
++#endif /* __riscv_nano */
