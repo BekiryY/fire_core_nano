@@ -1,0 +1,26 @@
+# Bu depoda core.autocrlf=true ve depo kokunde .gitattributes yok. Yani
+# Windows'ta yapilan her checkout metin dosyalarini CRLF'e cevirir. Bu dizin
+# icin bu BOZUCU bir davranistir:
+#
+#   * run_spike.sh CRLF ile checkout edilirse WSL/Linux bash altinda
+#     "$'\r': command not found" ile patlar -- jurinin akisi kosturamamasi
+#     demektir (Teknik Sartname v1.3 §4.1: juri script'leri dogrudan
+#     kosturabilmelidir).
+#   * Golden trace loglari CRLF olursa LF ureten RTL loglariyla satir satir
+#     karsilastirma bozulur; ayristirilan son alanin sonuna \r takilir.
+#
+# Bu yuzden dizindeki tum metin dosyalari platformdan bagimsiz LF'te sabitlenir.
+*.sh   text eol=lf
+*.py   text eol=lf
+*.s    text eol=lf
+*.S    text eol=lf
+*.h    text eol=lf
+*.ld   text eol=lf
+*.log  text eol=lf
+*.dis  text eol=lf
+*.hex  text eol=lf
+*.md   text eol=lf
+*.cfg  text eol=lf
+
+# ELF ikili -- git dokunmasin
+*.elf  binary

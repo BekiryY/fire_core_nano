@@ -1,0 +1,24 @@
+fc32e1s_nano_asic -- RTL history
+
+status        FROZEN (rev 3) -- do not change any file in this directory
+what          RV32E on 6 registers, ASIC build: byte-serial ALU, latch + clock-gate register
+              file (one read port, rev 3); sky130 hd tt 13 614 um2 (Yosys)
+continues     fc32e1s_nano rev 2 (deleted; its history: HISTORY_fc32e1s_nano); revs continue its numbering
+
+rev  date        commit   event
+2    2026-11-01  9b46ec8  split from fc32e1s_nano rev 2: PLATFORM fixed, the other platform's RTL removed;
+                          Spike regression PASS
+2    2026-11-02  9b46ec8  frozen (user: optimal; RTL as committed in 9b46ec8)
+
+3    2026-11-03  8046c34  thawed for a single register-file read port (user: +1 CPI for ~9 % area).
+                          Register-register ALU ops / branches alternate per byte (rs2 byte into b_q, then
+                          rs1 + byte ALU), stores read rs2 in the bus phase, register shifts read the
+                          distance in one extra cycle. sky130 tt Yosys 15 044 -> 13 614 um2 (-9.5 %);
+                          cpi_bench (xsim, 0 waits) 6.209 -> 7.398; Spike 53/53 (seeds 1, 7); MCU rtl/sub
+                          PASS. Tried first: 32-bit rs2 hold register, -3.0 % (enable FFs) / -4.8 %
+                          (clock-gated) for CPI 6.598
+3    2026-11-03  8046c34  frozen (user: "that was a good change"; RTL as committed in 8046c34)
+
+To change the RTL, thaw it here first (rule of ../../deprecated/fc32e1s_tiny/rtl/HISTORY): add rev N+1
+with "thawed for <change>", status THAWED (rev N+1); change, re-verify the core and everything
+built on it (appl/, example/), freeze again with a "frozen" line and the commit.

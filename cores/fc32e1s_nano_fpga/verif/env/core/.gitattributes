@@ -1,0 +1,8 @@
+# Depo kokunde .gitattributes yok ve core.autocrlf=true; Windows checkout'u
+# metin dosyalarini CRLF'e cevirir. CRLF'li bir run_core_rtl.sh Linux/WSL
+# bash altinda "$'\r': command not found" ile patlar -- juri akisi
+# kosturamaz (Teknik Sartname v1.3 §4.1). Ayni gerekce
+# verification/spike_iss/.gitattributes'ta da yazili.
+*.sh  text eol=lf
+*.sv  text eol=lf
+*.md  text eol=lf

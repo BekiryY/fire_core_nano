@@ -1,0 +1,7 @@
+# All generated outputs (ELF, hex, disassembly, spike/RTL traces, KAPSAM.md)
+# go to <core>/build/spike/ (see core.cfg BUILD_DIR), which the repo-level
+# .gitignore already excludes. Nothing generated belongs in this directory.
+*.dis
+*.elf
+*.log
+.rtl_run_stamp

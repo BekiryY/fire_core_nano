@@ -1,0 +1,15 @@
+fc32e1s_nano_fpga -- RTL history
+
+status        FROZEN (rev 2) -- do not change any file in this directory
+what          RV32E on 6 registers, FPGA build: 32-bit ALU, carry-chain branch comparator,
+              LUTRAM register file; GW2A 963 logic (769 LUT, 98 ALU, 16 RAM16), 58 REG
+continues     fc32e1s_nano rev 2 (deleted; its history: HISTORY_fc32e1s_nano); revs continue its numbering
+
+rev  date        commit   event
+2    2026-11-01  9b46ec8  split from fc32e1s_nano rev 2: PLATFORM fixed, the other platform's RTL removed;
+                          Spike regression PASS
+2    2026-11-02  9b46ec8  frozen (user: optimal; RTL as committed in 9b46ec8)
+
+To change the RTL, thaw it here first (rule of ../../deprecated/fc32e1s_tiny/rtl/HISTORY): add rev N+1
+with "thawed for <change>", status THAWED (rev N+1); change, re-verify the core and everything
+built on it (appl/, example/), freeze again with a "frozen" line and the commit.
