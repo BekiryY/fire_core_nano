@@ -11,7 +11,7 @@ AXI4-Lite instruction and data ports. Software: `riscv32-nano-elf-gcc -mnano`
 |---|---|
 | Gowin GW2A-18, core alone | 963 logic (769 LUT, 98 ALU, 16 RAM16), 58 registers (synthesis, area goal) |
 | Gowin GW2A-18, board top | core + 2 KiB block RAM + peripheral: 1225 logic, 4 BSRAM, **61.6 MHz** |
-| Xilinx 7-series, core alone | 572 LUT (524 logic + 48 LUTRAM), 59 FF, est. 77.5 MHz (Vivado OOC, xc7z020) |
+| Xilinx 7-series, core alone | **529 LUT** (481 logic + 48 LUTRAM), 59 FF, est. 81.7 MHz (Vivado OOC, xc7z020, AreaOptimized_high; Default: 572 LUT, 77.5 MHz) |
 | Xilinx 7-series, board top | 648 LUT (604 logic + 44 LUTRAM), 177 FF, 2 BRAM tiles, **94.6 MHz** after place and route (xc7z020clg400-1) |
 | CPI | 3.37 on `cpi_bench`, zero wait states (3.50 on the board top's CPI test) |
 | Verification | Spike vs RTL: 41/41 tests match, 38/38 instructions covered ([`verif/`](verif/)) |

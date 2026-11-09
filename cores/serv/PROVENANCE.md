@@ -16,3 +16,6 @@
   nano's GW2A board top: same 2 KiB block RAM, peripheral, reset) and
   `appl/gw2a/subsystem/serv_fpga_top.tcl` (same Gowin strategy as the nano): 388 logic, 281 FF,
   5 BSRAM, 139.8 MHz after place and route.
+- `appl/vivado/serv_core.tcl`: Vivado out-of-context synthesis of `serv_rf_top` (WITH_CSR = 0) on
+  xc7z020, the same set-up as the nano's: AreaOptimized_high 123 LUT, 164 FF, 1 RAMB18, est.
+  150.4 MHz (Default: 133 LUT, 164.7 MHz).

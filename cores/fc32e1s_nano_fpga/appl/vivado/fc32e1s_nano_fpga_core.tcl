@@ -2,11 +2,11 @@
 # core.xdc 10 ns. No Artix-7 part is installed with Vivado 2025.2 here: xc7z020clg400-1, whose
 # programmable logic is Artix-7 fabric (LUT6 / CARRY4 / LUTRAM; -1 timing only approximate).
 #   vivado -mode batch -nojournal -nolog -source fc32e1s_nano_fpga_core.tcl [-tclargs <directive>]
-#   directive: Default (default) or AreaOptimized_high; reports in build/vivado/<directive>/
+#   directive: AreaOptimized_high (default, the comparison's) or Default; reports in build/vivado/<directive>/
 set here [file dirname [file normalize [info script]]]
 set core [file normalize $here/../..]
 set name fc32e1s_nano_fpga
-set directive [expr {[llength $argv] ? [lindex $argv 0] : "Default"}]
+set directive [expr {[llength $argv] ? [lindex $argv 0] : "AreaOptimized_high"}]
 set out $core/build/vivado/$directive
 file mkdir $out
 set files [list $core/rtl/${name}_pkg.sv]

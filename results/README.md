@@ -7,22 +7,22 @@ FPGA, each against SERV built for the same target:
 | Target | FireCore nano | SERV |
 |---|---|---|
 | ASIC, SkyWater sky130 | `fc32e1s_nano_asic` (byte-serial ALU, latch register file) | SERV RV32E, latch register file |
-| FPGA, Gowin GW2A-18 | `fc32e1s_nano_fpga` (32-bit ALU, LUTRAM register file) | SERV, register file in block RAM |
+| FPGA, Xilinx 7-series (Vivado) | `fc32e1s_nano_fpga` (32-bit ALU, LUTRAM register file) | SERV, register file in block RAM |
 
 Date: 2026-11-08.
 
 ## Summary
 
-| | ASIC (sky130) | FPGA (GW2A-18) |
+| | ASIC (sky130) | FPGA (Vivado, core alone) |
 |---|---|---|
-| nano runs the benchmark | **2.4x faster** (2.1x at equal timing margin) | **5.5x faster** |
-| at a clock of | 36 MHz vs SERV's 85 MHz | 61.6 MHz vs SERV's 139.8 MHz |
-| size | **2.4x smaller die** | 3.2x more logic (1225 vs 388), 1 block RAM less |
-| other | **6.4x less energy** (gate-level activity) | **1.7x more speed per logic cell** |
+| nano runs the benchmark | **2.4x faster** (2.1x at equal timing margin) | **6.7x faster** |
+| at a clock of | 36 MHz vs SERV's 85 MHz | 81.7 MHz vs SERV's 150.4 MHz |
+| size | **2.4x smaller die** | 4.3x more LUTs (529 vs 123); SERV + 1 RAMB18 |
+| other | **6.4x less energy** (gate-level activity) | **1.56x more speed per LUT** |
 
-SERV clocks 2.3-2.4x higher on both, but needs 5.6x (ASIC) and 12.4x (FPGA) more cycles for the
+SERV clocks 2.4x (ASIC) and 1.8x (FPGA) higher, but needs 5.6x and 12.4x more cycles for the
 same C program. On sky130 the nano is both smaller and faster; on an FPGA SERV stays the smallest
-core and the nano buys 5.5x the speed for 3.2x the logic.
+core and the nano buys 6.7x the speed for 4.3x the LUTs.
 
 ## Software and method
 
@@ -127,45 +127,67 @@ with it), so the equal-margin comparison changes only the time, not the energy.
   register file does not change SERV's timing in cycles: an RV32I build runs `cpi_bench` in
   exactly the stock SERV cycle count.
 
-## FPGA: fc32e1s_nano_fpga vs SERV on GW2A-18
+## FPGA: fc32e1s_nano_fpga vs SERV, Vivado, core alone
 
-Gowin GW2A-LV18PG256C8/I7, Gowin EDA 1.9.12.04, synthesis and place and route with the same
-strategy for both ([`gw_project.tcl`](../cores/fc32e1s_nano_fpga/appl/gw2a/gw_project.tcl):
-area goal, max fanout 12, 100 MHz constraint, Fmax from the timing report). A bare core has more
-pins than the device, so each core is built in the same board top: core + 2 KiB block RAM (code,
-data, stack; the same RAM module for both) + LED / counter peripheral + reset synchronizer.
+Each CPU alone, without memory or peripherals: Vivado 2025.2 out-of-context synthesis,
+xc7z020clg400-1 (Artix-7 fabric: LUT6, CARRY4, LUTRAM, RAMB18; no Artix-7 part is installed
+here; -1 speed grade), 10 ns clock constraint, directive `AreaOptimized_high` (this is a comparison of small cores),
+Fmax estimated from the
+synthesis WNS (register to register; the bus ports are not pins). Scripts:
+[`fc32e1s_nano_fpga_core.tcl`](../cores/fc32e1s_nano_fpga/appl/vivado/fc32e1s_nano_fpga_core.tcl),
+[`serv_core.tcl`](../cores/serv/appl/vivado/serv_core.tcl).
 
-| | fc32e1s_nano_fpga top | SERV top |
+| | fc32e1s_nano_fpga | SERV |
 |---|---|---|
-| Board top | [`fc32e1s_nano_fpga_top.sv`](../cores/fc32e1s_nano_fpga/example/subsystem/fc32e1s_nano_fpga_top.sv) | [`serv_fpga_top.sv`](../cores/serv/example/subsystem/serv_fpga_top.sv) |
-| Logic | **1225** (963 LUT, 166 ALU, 16 RAM16) | **388** (307 LUT, 69 ALU, 2 RAM16) |
-| Registers | 171 | 281 |
-| Block RAM | 4 (the 2 KiB RAM) | 5 (the 2 KiB RAM + the register file) |
-| Fmax | **61.6 MHz** | **139.8 MHz** |
+| Top | `fc32e1s_nano_fpga_core` | `serv_rf_top`, `WITH_CSR = 0` (core + register file RAM) |
+| LUTs | **529** (481 logic + 48 LUTRAM: the register file) | **123** (logic) |
+| Flip-flops | 59 | 164 |
+| Block RAM | 0 | 1 RAMB18 (the register file) |
+| CARRY4 / MUXF7 | 21 / 6 | 0 / 0 |
+| Fmax, estimated | **81.7 MHz** | **150.4 MHz** |
+| directive Default | 572 LUTs, 77.5 MHz | 133 LUTs, 164.7 MHz |
 
-The core alone (synthesis, no place and route): nano 963 logic (769 LUT, 98 ALU, 16 RAM16), 58
-registers; SERV (`serv_rf_top`, with CSRs) 288 LUT, 182 FF, 1 block RAM.
-
-Performance, `cpi_bench`, at each top's Fmax:
+Performance, `cpi_bench`, at each core's estimated Fmax (`AreaOptimized_high`):
 
 | | fc32e1s_nano_fpga | SERV | nano advantage |
 |---|---|---|---|
 | Cycles | 4 931 283 | 61 037 635 | 12.4x fewer |
 | CPI | 3.37 | 55.42 | |
-| Complete time | 4.93 M / 61.6 MHz = **80.0 ms** | 61.04 M / 139.8 MHz = **436.5 ms** | 5.46x faster |
-| Effective MIPS | **13.77** | **2.52** | 5.46x |
-| Native MIPS | 18.30 | 2.52 | |
+| Complete time | 4.93 M / 81.7 MHz = **60.4 ms** | 61.04 M / 150.4 MHz = **405.8 ms** | 6.72x faster |
+| Effective MIPS | **18.25** | **2.71** | 6.72x |
+| Native MIPS | 24.28 | 2.71 | |
 | Code (.text) | 5 460 B | 4 972 B | 1.10x larger |
-| Logic | 1225 | 388 | 3.16x more |
-| Effective MIPS per 1000 logic | 11.2 | 6.5 | 1.73x |
+| LUTs | 529 | 123 | 4.30x more |
+| Effective MIPS per 1000 LUTs | 34.5 | 22.1 | 1.56x |
 
-CPI test on the board tops themselves (xsim): nano 18 304 cycles, 297 us (11.87 effective MIPS);
-SERV 183 729 cycles, 1314 us (2.68); 4.4x.
+- **Register files differ in kind.** The nano's is in LUTRAM and counted in its LUTs; SERV's
+  is in a RAMB18 and not counted. As LUTRAM, SERV's 1024 bits would add about 16 LUTs (139
+  LUTs: 1.77x per LUT instead of 1.56x).
+- **Synthesis estimate.** Fmax from synthesis uses estimated wire delays; place and route
+  changes it, not equally for both cores. The nano's board top, with RAM and peripheral, reaches
+  94.6 MHz after place and route (directive Default) against 77.5 MHz estimated for the core
+  alone with the same directive.
+- **SERV configuration.** Upstream `serv_rf_top` (`PRE_REGISTER = 1`, `RESET_STRATEGY = "MINI"`,
+  as in the board top) with `RESET_PC = 0`, `WITH_CSR = 0`, running the RV32E program. Its cycle
+  counts match the sky130 SERV exactly (CPI test: 183 729 cycles on both).
 
-- **Fmax is the board top's**, RAM and peripheral included, without pin constraints; neither core
-  was timing-optimized beyond the shared strategy. Clocks are used at Fmax, without margin.
-- **SERV configuration.** Upstream `serv_rf_top` with `WITH_CSR = 0` (no CSRs, as the nano), its
-  register file in one block RAM (SERV's FPGA form), running the RV32E program. Its cycle counts
-  match the sky130 SERV exactly (CPI test: 183 729 cycles on both).
-- **Buses.** The nano has AXI4-Lite instruction and data ports, SERV Wishbone; each board top
-  connects them to the RAM directly, one wait state per access for both.
+### Board tops on Gowin GW2A-18
+
+Each core in the same board top (core + 2 KiB block RAM + LED / counter peripheral + reset
+synchronizer), synthesis and place and route on GW2A-LV18PG256C8/I7, Gowin EDA 1.9.12.04, same
+strategy for both ([`gw_project.tcl`](../cores/fc32e1s_nano_fpga/appl/gw2a/gw_project.tcl): area
+goal, max fanout 12, 100 MHz constraint, Fmax from the timing report, no pin constraints). The
+CPI test runs on these tops in xsim.
+
+| | fc32e1s_nano_fpga top | SERV top |
+|---|---|---|
+| Board top | [`fc32e1s_nano_fpga_top.sv`](../cores/fc32e1s_nano_fpga/example/subsystem/fc32e1s_nano_fpga_top.sv) | [`serv_fpga_top.sv`](../cores/serv/example/subsystem/serv_fpga_top.sv) |
+| Logic | 1225 (963 LUT, 166 ALU, 16 RAM16) | 388 (307 LUT, 69 ALU, 2 RAM16) |
+| Registers | 171 | 281 |
+| Block RAM | 4 (the 2 KiB RAM) | 5 (the 2 KiB RAM + the register file) |
+| Fmax | 61.6 MHz | 139.8 MHz |
+| `cpi_bench` time | 80.0 ms (13.77 effective MIPS) | 436.5 ms (2.52) |
+| CPI test time | 297 us | 1314 us |
+
+The nano has AXI4-Lite instruction and data ports, SERV Wishbone; each board top connects them
+to the RAM directly, one wait state per access for both.
