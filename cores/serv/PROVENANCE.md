@@ -14,3 +14,7 @@
   place & route not run (the bare top has 195 pins, the GW2A-18 191).
 - Benchmark: `scripts/bench/cores/serv.toml` + `common/tb/bench/tb_bench_serv.sv` (serv_rf_top,
   default parameters, Wishbone memories `wb_mem_model.sv`); results in `docs/core_catalog.md`.
+- Added for the FPGA comparison (not upstream): `example/subsystem/serv_fpga_top.sv` (SERV on the
+  nano's GW2A board top: same 2 KiB block RAM, peripheral, reset) and
+  `appl/gw2a/subsystem/serv_fpga_top.tcl` (same Gowin strategy as the nano): 388 logic, 281 FF,
+  5 BSRAM, 139.8 MHz after place and route.

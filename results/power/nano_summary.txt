@@ -1,0 +1,2 @@
+nano: window 38066 cycles, 5482 instructions, 1057.4 us; unannotated pins 0
+nano: power 0.777 mW (vectorless 1.949 mW); energy 0.821 uJ, 21.6 pJ/cycle, 149.8 pJ/instruction

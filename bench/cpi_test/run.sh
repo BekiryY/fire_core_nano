@@ -10,8 +10,9 @@
 #   serv                    SERV, RV32E latch register file (tb/tb_cpi_serv.sv)
 #   serv_nano               SERV running the nano image (same instructions as the nano cores)
 #   fc32e1s_nano_fpga_sub   the FPGA subsystem board top (tb/tb_cpi_fpga_subsystem.sv)
+#   serv_fpga               SERV on the same FPGA board top (tb/tb_cpi_serv_fpga.sv)
 # Images (build.sh): build/nano/ (-mnano) for the nano cores and serv_nano, build/rv32e/
-# (stock GCC, 16 registers) for serv.
+# (stock GCC, 16 registers) for serv and serv_fpga.
 # Git Bash on Windows or Linux, Vivado xsim on PATH. Work files: build/xsim_<target>/.
 set -u -o pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,7 +20,7 @@ REPO="$(cd "$HERE/../.." && pwd)"
 winpath() { if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else echo "$1"; fi; }
 
 TARGETS=("$@")
-[ ${#TARGETS[@]} -gt 0 ] || TARGETS=(fc32e1s_nano_fpga fc32e1s_nano_asic serv serv_nano fc32e1s_nano_fpga_sub)
+[ ${#TARGETS[@]} -gt 0 ] || TARGETS=(fc32e1s_nano_fpga fc32e1s_nano_asic serv serv_nano fc32e1s_nano_fpga_sub serv_fpga)
 
 "$HERE/build.sh" nano cpi_test && "$HERE/build.sh" rv32e cpi_test || exit 1
 
@@ -32,7 +33,7 @@ core_files() {                      # <core>: package first, then the other rtl/
 rc=0
 for t in "${TARGETS[@]}"; do
   W="$HERE/build/xsim_$t"; mkdir -p "$W"
-  abi=nano; [ "$t" = serv ] && abi=rv32e
+  abi=nano; [[ "$t" = serv || "$t" = serv_fpga ]] && abi=rv32e
   cp "$HERE/build/$abi/cpi_test.hex" "$W/image.hex"
   for i in 0 1 2 3; do cp "$HERE/build/$abi/cpi_test_$i.hex" "$W/image_$i.hex"; done
   {
@@ -52,6 +53,12 @@ for t in "${TARGETS[@]}"; do
           winpath "$REPO/cores/fc32e1s_nano_fpga/example/subsystem/fc32e1s_nano_fpga_$f.sv"
         done
         top=tb_cpi_fpga_subsystem; tbf=tb_cpi_fpga_subsystem.sv ;;
+      serv_fpga)
+        for f in alu bufreg bufreg2 csr ctrl decode immdec mem_if rf_if rf_ram_if rf_ram state aligner \
+                 compdec top rf_top; do winpath "$REPO/cores/serv/rtl/serv_$f.v"; done
+        winpath "$REPO/cores/fc32e1s_nano_fpga/example/subsystem/fc32e1s_nano_fpga_ram.sv"
+        winpath "$REPO/cores/serv/example/subsystem/serv_fpga_top.sv"
+        top=tb_cpi_serv_fpga; tbf=tb_cpi_serv_fpga.sv ;;
       *) echo "[!] unknown target $t"; rc=1; continue ;;
     esac
     winpath "$HERE/tb/cpi_monitor.sv"

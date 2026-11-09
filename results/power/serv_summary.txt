@@ -1,0 +1,2 @@
+serv: window 196149 cycles, 3744 instructions, 2307.5 us; unannotated pins 0
+serv: power 2.279 mW (vectorless 4.819 mW); energy 5.259 uJ, 26.8 pJ/cycle, 1404.7 pJ/instruction
