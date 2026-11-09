@@ -30,7 +30,7 @@ and `add x1,x0,x16` each stop the core with `illegal` at that instruction (re-ch
 
 ```
 verif/
-  env/spike_iss/                  Spike flow (ported from the cv32e40p environment)
+  env/spike_iss/                  Spike flow
     core.cfg                      ALL per-core settings: ISA, memory map, tohost, skip list, BUILD_DIR
     run_core_tests.sh             full regression: spike -> RTL -> checker -> coverage
     run_spike.sh                  golden traces only (WSL/Linux)
@@ -42,7 +42,7 @@ verif/
     fc32e1s_nano_fpga_tracer.sv              per-instruction trace, cv32e40p_tracer-compatible format
 ```
 
-All generated files (ELF, hex, disassembly, traces, `KAPSAM.md`) go to `cores/fc32e1s_nano_fpga/verif/build/spike_<march>/`.
+All generated files (ELF, hex, disassembly, traces, coverage report) go to `cores/fc32e1s_nano_fpga/verif/build/spike_<march>/`.
 
 ## Memory map (simulation)
 
@@ -52,7 +52,7 @@ All generated files (ELF, hex, disassembly, traces, `KAPSAM.md`) go to `cores/fc
 | `0x2000_0000` - `0x2000_1FFF` | DMEM 8 KB |
 | `0x2000_1FC0` | tohost |
 
-IMEM is **not** at `0x0` as in the original cv32e40p environment: Spike maps its debug module
+IMEM is **not** at `0x0`: Spike maps its debug module
 at `0x0-0xFFF`, and the installed Spike build (1.1.1-dev) refuses to load an ELF there
 (`Memory address 0x0 is invalid`).
 
