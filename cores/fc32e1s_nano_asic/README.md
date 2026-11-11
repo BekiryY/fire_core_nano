@@ -7,6 +7,10 @@ AXI4-Lite instruction and data ports. Software: `riscv32-nano-elf-gcc -mnano`
 ([`../../toolchain`](../../toolchain)). FPGA build of the same core:
 [`fc32e1s_nano_fpga`](../fc32e1s_nano_fpga).
 
+![fc32e1s_nano_asic_core block diagram](doc/block_diagram.svg)
+
+Single-stage and multi-cycle: one instruction at a time, a fetch then 1 or more execute cycles.
+
 | | |
 |---|---|
 | sky130 layout (core alone) | 153.5 x 155.3 um = 23 843 um2, 82.7 % density, **36 MHz** signed off in 9 corners |

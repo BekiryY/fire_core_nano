@@ -31,8 +31,8 @@ SERV, so its CPI compares with the nano cores' on the same instructions.
 | fc32e1s_nano_fpga | `-mnano` | 1044 B | 18 304 | 5 228 | **3.50** | 61.6 MHz (GW2A) | 297.1 us | **11.86** |
 | fc32e1s_nano_fpga subsystem (block RAM) | `-mnano` | 1044 B | 18 304 | 5 228 | **3.50** | 61.6 MHz (GW2A) | 297.1 us | **11.86** |
 | fc32e1s_nano_asic | `-mnano` | 1044 B | 36 392 | 5 228 | **6.96** | 36 MHz (sky130) | 1010.9 us | **3.49** |
-| SERV (RV32E) | RV32E | 808 B | 183 729 | 3 525 | **52.12** | 85 MHz (sky130) | 2161.5 us | **1.63** |
-| SERV (RV32E), nano image | `-mnano` | 1044 B | 299 923 | 5 228 | **57.37** | 85 MHz (sky130) | 3528.5 us | 1.00 |
+| SERV (RV32E) | RV32E | 808 B | 183 729 | 3 525 | **52.12** | 76 MHz (sky130) | 2417.5 us | **1.46** |
+| SERV (RV32E), nano image | `-mnano` | 1044 B | 299 923 | 5 228 | **57.37** | 76 MHz (sky130) | 3946.4 us | 0.89 |
 | SERV FPGA board top (block RAM) | RV32E | 808 B | 183 729 | 3 525 | **52.12** | 139.8 MHz (GW2A) | 1314.0 us | **2.68** |
 
 Complete time = cycles / clock, at each core's signed-off sky130 clock or GW2A place-and-route
@@ -41,5 +41,5 @@ count, 3 525) / complete time, so extra instructions count against a core.
 
 With 6 registers the code is 29 % larger and runs 48 % more instructions than SERV's 16-register
 build; the nano cores still need 10.0x (FPGA) and 5.0x (ASIC) fewer cycles than SERV on its own
-code. On sky130 the nano ASIC finishes 2.1x sooner (36 MHz) than SERV (85 MHz); on GW2A the nano
+code. On sky130 the nano ASIC finishes 2.4x sooner (36 MHz) than SERV (76 MHz); on GW2A the nano
 board top finishes 4.4x sooner (61.6 MHz) than the SERV board top (139.8 MHz).

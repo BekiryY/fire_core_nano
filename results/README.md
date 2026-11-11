@@ -9,18 +9,18 @@ FPGA, each against SERV built for the same target:
 | ASIC, SkyWater sky130 | `fc32e1s_nano_asic` (byte-serial ALU, latch register file) | SERV RV32E, latch register file |
 | FPGA, Xilinx 7-series (Vivado) | `fc32e1s_nano_fpga` (32-bit ALU, LUTRAM register file) | SERV, register file in block RAM |
 
-Date: 2026-11-08.
+Date: 2026-11-11 (SERV sky130 layout s8).
 
 ## Summary
 
 | | ASIC (sky130) | FPGA (Vivado, core alone) |
 |---|---|---|
-| nano runs the benchmark | **2.4x faster** (2.1x at equal timing margin) | **6.7x faster** |
-| at a clock of | 36 MHz vs SERV's 85 MHz | 81.7 MHz vs SERV's 150.4 MHz |
-| size | **2.4x smaller die** | 4.3x more LUTs (529 vs 123); SERV + 1 RAMB18 |
-| other | **6.4x less energy** (gate-level activity) | **1.56x more speed per LUT** |
+| nano runs the benchmark | **2.7x faster** (2.4x at equal timing margin) | **6.7x faster** |
+| at a clock of | 36 MHz vs SERV's 76 MHz | 81.7 MHz vs SERV's 150.4 MHz |
+| size | **1.76x smaller die** | 4.3x more LUTs (529 vs 123); SERV + 1 RAMB18 |
+| other | **6.5x less energy** (gate-level activity) | **1.56x more speed per LUT** |
 
-SERV clocks 2.4x (ASIC) and 1.8x (FPGA) higher, but needs 5.6x and 12.4x more cycles for the
+SERV clocks 2.1x (ASIC) and 1.8x (FPGA) higher, but needs 5.6x and 12.4x more cycles for the
 same C program. On sky130 the nano is both smaller and faster; on an FPGA SERV stays the smallest
 core and the nano buys 6.7x the speed for 4.3x the LUTs.
 
@@ -58,22 +58,22 @@ layouts are the core with its bus pins. Configs and metrics are in [`sky130/`](s
 | ISA, registers | RV32E, 6 (x0 ra sp a0..a2) | RV32E, 16 (x0..x15) |
 | Datapath | byte-serial ALU | bit-serial |
 | Register file | latches, one clock gate per byte lane | latches (`dlxtp_1`), one clock gate per word |
-| Die | 153.5 x 155.3 um = **23 843 um2** | 238 x 238 um = **56 644 um2** |
-| Standard cells | **18 505 um2** | **30 895 um2** |
+| Die | 153.5 x 155.3 um = **23 843 um2** | 205 x 205 um = **42 025 um2** |
+| Standard cells | **18 505 um2** | **30 657 um2** |
 | of which sequential | 5 095 um2 | 13 992 um2 |
-| Cell density (fill excluded) | 82.7 % | 66.6 % |
-| Clock (signed off) | **36 MHz** (ss Fmax 37.0 MHz, max RC) | **85 MHz** (ss setup slack +1.59 ns) |
-| Hold, worst | +0.106 ns | +0.0015 ns |
+| Cell density (fill excluded) | 82.7 % | 76.8 % |
+| Clock (signed off) | **36 MHz** (ss Fmax 37.0 MHz, max RC) | **76 MHz** (ss setup slack +1.67 ns) |
+| Hold, worst | +0.106 ns | +0.093 ns |
 | DRC (Magic, KLayout) / LVS / antenna | clean | clean |
 | Max slew (1.1 ns limit) | 1 net at 1.13 ns (ss) | clean |
-| Wire length | 67.7 mm | 68.8 mm |
-| Power, CPI test activity (tt) | **0.777 mW** at 36 MHz | **2.279 mW** at 85 MHz |
-| Power, vectorless (OpenSTA / LibreLane) | 1.95 / 2.33 mW | 4.82 / 5.71 mW |
+| Wire length | 67.7 mm | 74.6 mm |
+| Power, CPI test activity (tt) | **0.777 mW** at 36 MHz | **2.062 mW** at 76 MHz |
+| Power, vectorless (OpenSTA / LibreLane) | 1.95 / 2.33 mW | 4.40 / 5.22 mW |
 
 | fc32e1s_nano_asic | SERV, RV32E |
 |---|---|
 | ![fc32e1s_nano_asic layout](sky130/fc32e1s_nano_asic/fc32e1s_nano_asic_hard.png) | ![SERV layout](sky130/serv_rv32e/serv_rf_top_latch.png) |
-| 153.5 x 155.3 um | 238 x 238 um (images are not to the same scale) |
+| 153.5 x 155.3 um | 205 x 205 um, pins on N + S (images are not to the same scale) |
 
 Performance, `cpi_bench`, at each core's signed-off clock:
 
@@ -81,16 +81,16 @@ Performance, `cpi_bench`, at each core's signed-off clock:
 |---|---|---|---|
 | Cycles | 10 839 619 | 61 037 635 | 5.6x fewer |
 | CPI | 7.40 | 55.42 | |
-| Complete time | 10.84 M / 36 MHz = **301 ms** | 61.04 M / 85 MHz = **718 ms** | 2.39x faster |
-| Effective MIPS | **3.66** | **1.53** | 2.39x |
-| Native MIPS | 4.87 | 1.53 | |
+| Complete time | 10.84 M / 36 MHz = **301 ms** | 61.04 M / 76 MHz = **803 ms** | 2.67x faster |
+| Effective MIPS | **3.66** | **1.37** | 2.67x |
+| Native MIPS | 4.87 | 1.37 | |
 | Code (.text) | 5 460 B | 4 972 B | 1.10x larger |
-| Die area | 23 843 um2 | 56 644 um2 | 2.38x smaller |
-| Speed per die area | | | 5.7x |
-| Energy, from the CPI test's energy per cycle | 21.6 pJ x 10.84 M = **234 uJ** | 26.8 pJ x 61.04 M = **1637 uJ** | 7.0x less |
+| Die area | 23 843 um2 | 42 025 um2 | 1.76x smaller |
+| Speed per die area | | | 4.7x |
+| Energy, from the CPI test's energy per cycle | 21.6 pJ x 10.84 M = **234 uJ** | 27.2 pJ x 61.04 M = **1661 uJ** | 7.1x less |
 
-CPI test: nano 36 392 cycles, 1.01 ms (3.49 effective MIPS); SERV 183 729 cycles, 2.16 ms
-(1.63); 2.1x.
+CPI test: nano 36 392 cycles, 1.01 ms (3.49 effective MIPS); SERV 183 729 cycles, 2.42 ms
+(1.46); 2.4x.
 
 **Energy, measured.** `cpi_bench` (5.5 KiB) does not fit the nano layout's 2 KiB instruction
 space, so the energy is measured with the CPI test, which runs on both final netlists:
@@ -101,23 +101,23 @@ with the layout's parasitics at tt 025C 1v80 ([`../bench/power`](../bench/power)
 | CPI test, reset to end | fc32e1s_nano_asic | SERV, RV32E | |
 |---|---|---|---|
 | Cycles / instructions | 38 066 / 5 482 | 196 149 / 3 744 | |
-| Time | 1057 us at 36 MHz | 2307 us at 85 MHz | |
-| Power | **0.777 mW** (sequential 0.208, combinational 0.370, clock 0.199) | **2.279 mW** (sequential 1.243, combinational 0.215, clock 0.821) | |
-| Energy | **0.821 uJ** | **5.259 uJ** | **6.4x less** |
-| per cycle | 21.6 pJ | 26.8 pJ | 1.24x less |
-| per instruction | 150 pJ | 1405 pJ | |
+| Time | 1057 us at 36 MHz | 2589 us at 76 MHz | |
+| Power | **0.777 mW** (sequential 0.208, combinational 0.370, clock 0.199) | **2.062 mW** (sequential 1.111, combinational 0.195, clock 0.756) | |
+| Energy | **0.821 uJ** | **5.338 uJ** | **6.5x less** |
+| per cycle | 21.6 pJ | 27.2 pJ | 1.26x less |
+| per instruction | 150 pJ | 1426 pJ | |
 
 The real activity is 2.5x (nano) and 2.1x (SERV) lower than the vectorless estimates. SERV
 spends more energy per cycle (most of it in its sequential cells and its clock tree)
 and needs 5.2x the cycles. The energy per program does not depend on the clock (power scales
 with it), so the equal-margin comparison changes only the time, not the energy.
 
-- **Clock margins differ.** At the slow corner (ss 100C 1.60 V, max RC) SERV runs 85 MHz against
-  an Fmax of about 98 MHz (13.5 % margin), the nano 36 MHz against 37.0 MHz (2.7 %; 39.5 MHz at
-  min RC). Compared at their Fmax, or both at 13.5 % margin (nano 32 MHz), the nano finishes
-  `cpi_bench` **2.1x** sooner (293 vs 621 ms) instead of 2.4x.
-- **Densities differ.** SERV was laid out at 60-67 % cell density, the nano at 82.7 %. At the
-  nano's density SERV's die would be about 46 400 um2, still 1.9x the nano's.
+- **Clock margins differ.** At the slow corner (ss 100C 1.60 V, max RC) SERV runs 76 MHz against
+  an Fmax of about 86.7 MHz (12.7 % margin), the nano 36 MHz against 37.0 MHz (2.7 %; 39.5 MHz at
+  min RC). Compared at their Fmax (293 vs 704 ms), or both at 12.7 % margin (nano 32.3 MHz, 336
+  vs 803 ms), the nano finishes `cpi_bench` **2.4x** sooner instead of 2.7x.
+- **Densities differ.** SERV was laid out at 76.8 % cell density, the nano at 82.7 %. At the
+  nano's density SERV's die would be about 39 000 um2, still 1.6x the nano's.
 - **Power** is simulation-annotated at the typical corner with zero-delay activity (no glitches,
   so combinational switching is a lower bound), not a silicon measurement. `cpi_bench`'s energy
   is the CPI test's energy per cycle times `cpi_bench`'s cycles.

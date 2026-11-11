@@ -30,7 +30,9 @@ VERILOG_FILES:
 CLOCK_PORT: clk
 # RV32I 68 MHz: s2 (36 MHz) re-timed at ss max RC met up to ~78 MHz; 10-15 % margin (user rule).
 # RV32E 85 MHz: s5 (68 MHz) re-timed met up to 100 MHz (fails at 111).
-CLOCK_PERIOD: 11.7647
+# s8: 76 MHz. The 205 um layout at 85 MHz (s7) had only +0.23 ns ss flop setup slack (2 %);
+# 13.2 ns gives +1.67 ns (12.7 %).
+CLOCK_PERIOD: 13.2
 SYNTH_STRATEGY: AREA 0
 # Square die (strict). Final cell utilization (fill excluded) between 60 and 67 %: s1 (relative,
 # 63 % at floorplan) ended at 77.8 % (+9 k um2 repair / clock buffers, taps) on a 257 x 268 die
@@ -39,9 +41,16 @@ SYNTH_STRATEGY: AREA 0
 FP_SIZING: absolute
 # RV32I: 294 for 64 % (user; s2 292 = 65.1 %, s3 = s2 at 14.7 ns stuck in detailed routing).
 # RV32E: synthesis 24.6k um2 (RV32I 37.7k); s5 240 = 65.1 % (30.8k um2); 238 for ~66 %.
-DIE_AREA: [0, 0, 238, 238]
-LEFT_MARGIN_MULT: 24
-RIGHT_MARGIN_MULT: 24
+# 205: ~77 % (s6, 238 um, was 66.6 %), nano margins.
+DIE_AREA: [0, 0, 205, 205]
+# Pins N + S only, whole buses per side (as fc32e1s_nano_asic; s6 default placement bunched
+# them at the corners): N clk / rst, addresses, handshakes, dbus_sel (75); S ibus_rdt, dbus_dat,
+# dbus_rdt (96). Margins as the nano core: 1 row top / bottom, 4 sites left / right.
+IO_PIN_ORDER_CFG: dir::pin_order.cfg
+BOTTOM_MARGIN_MULT: 1
+TOP_MARGIN_MULT: 1
+LEFT_MARGIN_MULT: 4
+RIGHT_MARGIN_MULT: 4
 # s1: 23 ss slew violations after routing (worst -0.54 ns, a word enable with an antenna diode),
 # one antenna violation (a word enable on met3, ratio 2.05): more repair margin.
 DESIGN_REPAIR_MAX_SLEW_PCT: 30
