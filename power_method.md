@@ -10,7 +10,8 @@ LibreLane's power number is OpenSTA's **vectorless** estimate: a default toggle 
 and the registers, propagated through the logic as probabilities. It ignores what the design
 actually does: registers that hold, clock gates that stay closed, a byte-serial datapath that
 switches one lane at a time. For these two cores it was 2.5x (nano) and 2.1x (SERV) too high, and
-not by the same factor, so even the ratio between the cores was off (5.9x vs the measured 6.4x).
+not by the same factor, so even the ratio between the cores was off (SERV s8 / nano energy: 5.5x
+vectorless vs 6.5x measured).
 
 The real activity comes from simulating the **final netlist** (the one the parasitics belong
 to) running a real program, recording how often every cell pin toggles, and handing those toggle
@@ -34,7 +35,7 @@ program image ─► gate-level sim of final netlist ─► SAIF (toggles per pi
      `-d FUNCTIONAL -d UNIT_DELAY=` (functional models, zero delay). Both files start with
      `` `default_nettype none ``, which breaks the implicit nets in the netlist: change it to
      `wire` on a copy.
-   - Clock: the signed-off period (nano 27.78 ns, SERV 11.76 ns). With zero delay the period does
+   - Clock: the signed-off period (nano 27.78 ns, SERV 13.2 ns). With zero delay the period does
      not change the toggles; it only sets the time, hence the power (toggles / time).
    - Check: the gate-level run must give exactly the RTL cycle count and PASS (nano 36 392, SERV
      183 729 kernel cycles). Any difference means the netlist simulation is wrong, not the core.
@@ -84,12 +85,22 @@ program image ─► gate-level sim of final netlist ─► SAIF (toggles per pi
 
 ## Results (CPI test, tt 25 C 1.8 V)
 
-| | nano (36 MHz) | SERV (85 MHz) |
+Layouts: nano `fc32e1s_nano_asic` v73 (153.5 x 155.3 um), SERV s8 (205 x 205 um, 76.8 %, pins
+N + S). Kernel cycles in the window as in RTL: SERV 183 729, nano 36 392.
+
+| | nano (36 MHz) | SERV (76 MHz) |
 |---|---|---|
-| Power, real activity | 0.777 mW | 2.279 mW |
-| Power, vectorless | 1.949 mW | 4.819 mW |
-| Energy | 0.821 uJ | 5.259 uJ |
-| per cycle / per instruction | 21.6 / 150 pJ | 26.8 / 1405 pJ |
+| Power, real activity | 0.777 mW | 2.062 mW |
+| sequential / combinational / clock | 0.208 / 0.370 / 0.199 mW | 1.111 / 0.195 / 0.756 mW |
+| Power, vectorless | 1.949 mW | 4.395 mW |
+| Window | 1057 us | 2589 us (196 149 cycles, 3744 instructions) |
+| Energy | 0.821 uJ | 5.338 uJ (**6.5x** nano) |
+| per cycle / per instruction | 21.6 / 150 pJ | 27.2 / 1426 pJ |
+
+SERV history: the earlier s6 layout (238 x 238 um, 85 MHz) measured 2.279 mW, 5.259 uJ,
+26.8 pJ/cycle. s8 takes 1.5 % more energy for the same toggles: clock tree +3.3 %, combinational
++1.8 %, sequential +0.3 % (a new floorplan and clock tree). Energy, not power, is the number to
+compare: the power drops with the lower clock, the energy per program does not.
 
 Run time: about 3 minutes for both (simulation 30 s nano, 1.5 min SERV; SAIF a few MB). The
 CPU-only scope is what keeps it this short; a subsystem with SRAM models would cost much more.

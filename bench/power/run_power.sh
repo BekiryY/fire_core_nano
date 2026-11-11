@@ -39,7 +39,7 @@ rc=0
 for t in "${TARGETS[@]}"; do
   case "$t" in
     nano) top=fc32e1s_nano_asic_hard; abi=nano;  period=27.7778; final="${NANO_FINAL:-}" ;;
-    serv) top=serv_rf_top_latch;      abi=rv32e; period=11.7647; final="${SERV_FINAL:-}" ;;
+    serv) top=serv_rf_top_latch;      abi=rv32e; period=13.2;    final="${SERV_FINAL:-}" ;;
     *) echo "[!] unknown target $t (nano, serv)"; rc=1; continue ;;
   esac
   [ -n "$final" ] || { echo "[!] $t: set ${t^^}_FINAL to the LibreLane run's final/ folder"; rc=1; continue; }

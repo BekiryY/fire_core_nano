@@ -9,7 +9,7 @@
 
 module tb_gl;
 
-  parameter real PERIOD = 11.7647;     // ns, 85 MHz
+  parameter real PERIOD = 13.2;        // ns, 76 MHz
 
   logic clk = 1'b0, rst_n = 1'b0;
   always #(PERIOD / 2.0) clk = ~clk;

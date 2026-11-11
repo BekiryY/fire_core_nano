@@ -26,7 +26,7 @@ Method:
 
 1. **Gate level, zero delay.** The final netlist with the PDK's functional cell models
    (`-d FUNCTIONAL`). It runs the CPI test in exactly the RTL cycle count (nano 36 392, SERV
-   183 729 kernel cycles), at the signed-off clock period (nano 27.78 ns, SERV 11.76 ns).
+   183 729 kernel cycles), at the signed-off clock period (nano 27.78 ns, SERV 13.2 ns).
 2. **SAIF window**: from reset release to the program's last write (start-up code, the six
    kernels, the result checks), every cell instance's pins (`log_saif -r`).
 3. **OpenSTA**: `sky130_fd_sc_hd__tt_025C_1v80`, the layout's nominal-RC SPEF and SDC,
