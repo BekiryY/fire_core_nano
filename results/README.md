@@ -17,12 +17,12 @@ Date: 2026-11-11 (SERV sky130 layout s8).
 |---|---|---|
 | nano runs the benchmark | **2.7x faster** (2.4x at equal timing margin) | **6.7x faster** |
 | at a clock of | 36 MHz vs SERV's 76 MHz | 81.7 MHz vs SERV's 150.4 MHz |
-| size | **1.76x smaller die** | 4.3x more LUTs (529 vs 123); SERV + 1 RAMB18 |
-| other | **6.5x less energy** (gate-level activity) | **1.56x more speed per LUT** |
+| size | **1.76x smaller die** | 1.29x more LUT-eq (529 vs 411: SERV 123 LUTs + 1 RAMB18) |
+| other | **6.5x less energy** (gate-level activity) | **5.2x more speed per LUT-eq** |
 
 SERV clocks 2.1x (ASIC) and 1.8x (FPGA) higher, but needs 5.6x and 12.4x more cycles for the
 same C program. On sky130 the nano is both smaller and faster; on an FPGA SERV stays the smallest
-core and the nano buys 6.7x the speed for 4.3x the LUTs.
+core and the nano buys 6.7x the speed for 1.29x the area (LUT-eq).
 
 ## PPA score
 
@@ -181,12 +181,12 @@ Performance, `cpi_bench`, at each core's estimated Fmax (`AreaOptimized_high`):
 | Effective MIPS | **18.25** | **2.71** | 6.72x |
 | Native MIPS | 24.28 | 2.71 | |
 | Code (.text) | 5 460 B | 4 972 B | 1.10x larger |
-| LUTs | 529 | 123 | 4.30x more |
-| Effective MIPS per 1000 LUTs | 34.5 | 22.1 | 1.56x |
+| Area, LUT-eq | 529 | 411 (123 LUTs + 1 RAMB18 = 288) | 1.29x more |
+| Effective MIPS per 1000 LUT-eq | 34.5 | 6.6 | 5.2x |
 
-- **Register files differ in kind.** The nano's is in LUTRAM and counted in its LUTs; SERV's
-  is in a RAMB18 and not counted. As LUTRAM, SERV's 1024 bits would add about 16 LUTs (139
-  LUTs: 1.77x per LUT instead of 1.56x).
+- **Area in LUT-eq.** LUT6 equivalents: LUTs + 288 per RAMB18 (18 Kb / 64 bits per LUTRAM
+  LUT), so SERV's register file counts as the block RAM it occupies. It uses only 1 Kb of it:
+  as LUTRAM its 1024 bits would be about 16 LUTs (139 LUTs: 1.77x per LUT instead of 5.2x).
 - **Synthesis estimate.** Fmax from synthesis uses estimated wire delays; place and route
   changes it, not equally for both cores. The nano's board top, with RAM and peripheral, reaches
   94.6 MHz after place and route (directive Default) against 77.5 MHz estimated for the core
