@@ -1,0 +1,104 @@
+<svg xml:space="preserve" xmlns="http://www.w3.org/2000/svg" width="3300" height="1620" viewBox="0 0 3300 1620">
+<rect width="3300" height="1620" fill="#0d1117"/>
+<g font-family="DejaVu Sans, Arial, sans-serif" fill="#e6edf3">
+<text x="80" y="100" font-size="64" font-weight="bold">CPU trade-off chart</text>
+<text x="80" y="155" font-size="32" fill="#8b949e">Higher = better on every axis. Each axis: the better core at the edge, log scale, centre = 1/10 of it.</text>
+<text x="80" y="200" font-size="32" fill="#8b949e">PPA score: weighted geometric mean of the six axes vs the better core, x 100; Effective IPC and code density weigh 2, the others 1.</text>
+<rect x="2400" y="68" width="34" height="34" fill="#f0883e"/><text x="2448" y="98" font-size="34">fc32e1s_nano</text>
+<rect x="2760" y="68" width="34" height="34" fill="#58a6ff"/><text x="2808" y="98" font-size="34">award-winning SERV</text>
+<text x="880" y="270" font-size="46" font-weight="bold" text-anchor="middle">ASIC  ·  sky130</text>
+<text x="880" y="318" font-size="28" fill="#8b949e" text-anchor="middle">final layouts, signed-off clocks, measured energy</text>
+<text x="880" y="420" font-size="30" fill="#8b949e" text-anchor="middle">PPA score <tspan fill="#f0883e" font-size="64" font-weight="bold">86</tspan><tspan>   vs   </tspan><tspan fill="#58a6ff" font-size="64" font-weight="bold">48</tspan></text>
+<polygon points="880.0,865.0 953.6,907.5 953.6,992.5 880.0,1035.0 806.4,992.5 806.4,907.5" fill="none" stroke="#30363d" stroke-width="2"/>
+<polygon points="880.0,780.0 1027.2,865.0 1027.2,1035.0 880.0,1120.0 732.8,1035.0 732.8,865.0" fill="none" stroke="#30363d" stroke-width="2"/>
+<polygon points="880.0,695.0 1100.8,822.5 1100.8,1077.5 880.0,1205.0 659.2,1077.5 659.2,822.5" fill="none" stroke="#30363d" stroke-width="2"/>
+<polygon points="880.0,610.0 1174.4,780.0 1174.4,1120.0 880.0,1290.0 585.6,1120.0 585.6,780.0" fill="none" stroke="#30363d" stroke-width="2"/>
+<line x1="880" y1="950" x2="880.0" y2="610.0" stroke="#30363d" stroke-width="2"/>
+<line x1="880" y1="950" x2="1174.4" y2="780.0" stroke="#30363d" stroke-width="2"/>
+<line x1="880" y1="950" x2="1174.4" y2="1120.0" stroke="#30363d" stroke-width="2"/>
+<line x1="880" y1="950" x2="880.0" y2="1290.0" stroke="#30363d" stroke-width="2"/>
+<line x1="880" y1="950" x2="585.6" y2="1120.0" stroke="#30363d" stroke-width="2"/>
+<line x1="880" y1="950" x2="585.6" y2="780.0" stroke="#30363d" stroke-width="2"/>
+<polygon points="880.0,720.3 1174.4,780.0 1174.4,1120.0 880.0,1290.0 597.5,1113.1 618.2,798.8" fill="#f0883e" fill-opacity="0.22" stroke="#f0883e" stroke-width="5" stroke-linejoin="round"/>
+<circle cx="880.0" cy="720.3" r="8" fill="#f0883e"/>
+<circle cx="1174.4" cy="780.0" r="8" fill="#f0883e"/>
+<circle cx="1174.4" cy="1120.0" r="8" fill="#f0883e"/>
+<circle cx="880.0" cy="1290.0" r="8" fill="#f0883e"/>
+<circle cx="597.5" cy="1113.1" r="8" fill="#f0883e"/>
+<circle cx="618.2" cy="798.8" r="8" fill="#f0883e"/>
+<polygon points="880.0,610.0 953.4,907.6 1102.0,1078.2 880.0,1013.6 585.6,1120.0 585.6,780.0" fill="#58a6ff" fill-opacity="0.22" stroke="#58a6ff" stroke-width="5" stroke-linejoin="round"/>
+<circle cx="880.0" cy="610.0" r="8" fill="#58a6ff"/>
+<circle cx="953.4" cy="907.6" r="8" fill="#58a6ff"/>
+<circle cx="1102.0" cy="1078.2" r="8" fill="#58a6ff"/>
+<circle cx="880.0" cy="1013.6" r="8" fill="#58a6ff"/>
+<circle cx="585.6" cy="1120.0" r="8" fill="#58a6ff"/>
+<circle cx="585.6" cy="780.0" r="8" fill="#58a6ff"/>
+<text x="880" y="500" font-size="32" font-weight="bold" text-anchor="middle">Fmax</text>
+<text x="880" y="536" font-size="24" fill="#8b949e" text-anchor="middle">MHz</text>
+<text x="880" y="570" font-size="27" text-anchor="middle"><tspan fill="#f0883e">36.0 MHz</tspan><tspan fill="#8b949e">  vs  </tspan><tspan fill="#58a6ff">76.0 MHz</tspan></text>
+<text x="1209" y="740" font-size="32" font-weight="bold" text-anchor="start">Effective IPC</text>
+<text x="1209" y="776" font-size="24" fill="#8b949e" text-anchor="start">RV32E instr / cycle</text>
+<text x="1209" y="810" font-size="27" text-anchor="start"><tspan fill="#f0883e">0.102</tspan><tspan fill="#8b949e">  vs  </tspan><tspan fill="#58a6ff">0.018</tspan></text>
+<text x="1209" y="1120" font-size="32" font-weight="bold" text-anchor="start">Area efficiency</text>
+<text x="1209" y="1156" font-size="24" fill="#8b949e" text-anchor="start">1 / area</text>
+<text x="1209" y="1190" font-size="27" text-anchor="start"><tspan fill="#f0883e">23 843 um2</tspan><tspan fill="#8b949e">  vs  </tspan><tspan fill="#58a6ff">42 025 um2</tspan></text>
+<text x="880" y="1360" font-size="32" font-weight="bold" text-anchor="middle">Energy efficiency</text>
+<text x="880" y="1396" font-size="24" fill="#8b949e" text-anchor="middle">RV32E instr / uJ</text>
+<text x="880" y="1430" font-size="27" text-anchor="middle"><tspan fill="#f0883e">4 560</tspan><tspan fill="#8b949e">  vs  </tspan><tspan fill="#58a6ff">701</tspan></text>
+<text x="551" y="1120" font-size="32" font-weight="bold" text-anchor="end">Code density</text>
+<text x="551" y="1156" font-size="24" fill="#8b949e" text-anchor="end">RV32E .text / own .text</text>
+<text x="551" y="1190" font-size="27" text-anchor="end"><tspan fill="#f0883e">0.91</tspan><tspan fill="#8b949e">  vs  </tspan><tspan fill="#58a6ff">1.00</tspan></text>
+<text x="551" y="740" font-size="32" font-weight="bold" text-anchor="end">Wait-state tolerance</text>
+<text x="551" y="776" font-size="24" fill="#8b949e" text-anchor="end">CPI 0 waits / CPI 2 waits</text>
+<text x="551" y="810" font-size="27" text-anchor="end"><tspan fill="#f0883e">0.74</tspan><tspan fill="#8b949e">  vs  </tspan><tspan fill="#58a6ff">0.96</tspan></text>
+<text x="880" y="1500" font-size="30" text-anchor="middle"><tspan fill="#f0883e" font-weight="bold">fc32e1s_nano_asic</tspan><tspan fill="#e6edf3">  3.66 effective MIPS  ·  153.4 MIPS per mm2</tspan></text>
+<text x="880" y="1544" font-size="30" text-anchor="middle"><tspan fill="#58a6ff" font-weight="bold">SERV</tspan><tspan fill="#e6edf3">  1.37 effective MIPS  ·  32.6 MIPS per mm2</tspan></text>
+<text x="2420" y="270" font-size="46" font-weight="bold" text-anchor="middle">FPGA  ·  Vivado 7-series, core alone</text>
+<text x="2420" y="318" font-size="28" fill="#8b949e" text-anchor="middle">AreaOptimized_high, estimated Fmax and energy</text>
+<text x="2420" y="420" font-size="30" fill="#8b949e" text-anchor="middle">PPA score <tspan fill="#f0883e" font-size="64" font-weight="bold">82</tspan><tspan>   vs   </tspan><tspan fill="#58a6ff" font-size="64" font-weight="bold">42</tspan></text>
+<polygon points="2420.0,865.0 2493.6,907.5 2493.6,992.5 2420.0,1035.0 2346.4,992.5 2346.4,907.5" fill="none" stroke="#30363d" stroke-width="2"/>
+<polygon points="2420.0,780.0 2567.2,865.0 2567.2,1035.0 2420.0,1120.0 2272.8,1035.0 2272.8,865.0" fill="none" stroke="#30363d" stroke-width="2"/>
+<polygon points="2420.0,695.0 2640.8,822.5 2640.8,1077.5 2420.0,1205.0 2199.2,1077.5 2199.2,822.5" fill="none" stroke="#30363d" stroke-width="2"/>
+<polygon points="2420.0,610.0 2714.4,780.0 2714.4,1120.0 2420.0,1290.0 2125.6,1120.0 2125.6,780.0" fill="none" stroke="#30363d" stroke-width="2"/>
+<line x1="2420" y1="950" x2="2420.0" y2="610.0" stroke="#30363d" stroke-width="2"/>
+<line x1="2420" y1="950" x2="2714.4" y2="780.0" stroke="#30363d" stroke-width="2"/>
+<line x1="2420" y1="950" x2="2714.4" y2="1120.0" stroke="#30363d" stroke-width="2"/>
+<line x1="2420" y1="950" x2="2420.0" y2="1290.0" stroke="#30363d" stroke-width="2"/>
+<line x1="2420" y1="950" x2="2125.6" y2="1120.0" stroke="#30363d" stroke-width="2"/>
+<line x1="2420" y1="950" x2="2125.6" y2="780.0" stroke="#30363d" stroke-width="2"/>
+<polygon points="2420.0,700.1 2714.4,780.0 2682.2,1101.4 2420.0,1290.0 2137.5,1113.1 2192.5,818.6" fill="#f0883e" fill-opacity="0.22" stroke="#f0883e" stroke-width="5" stroke-linejoin="round"/>
+<circle cx="2420.0" cy="700.1" r="8" fill="#f0883e"/>
+<circle cx="2714.4" cy="780.0" r="8" fill="#f0883e"/>
+<circle cx="2682.2" cy="1101.4" r="8" fill="#f0883e"/>
+<circle cx="2420.0" cy="1290.0" r="8" fill="#f0883e"/>
+<circle cx="2137.5" cy="1113.1" r="8" fill="#f0883e"/>
+<circle cx="2192.5" cy="818.6" r="8" fill="#f0883e"/>
+<polygon points="2420.0,610.0 2420.0,950.0 2714.4,1120.0 2420.0,998.9 2125.6,1120.0 2125.6,780.0" fill="#58a6ff" fill-opacity="0.22" stroke="#58a6ff" stroke-width="5" stroke-linejoin="round"/>
+<circle cx="2420.0" cy="610.0" r="8" fill="#58a6ff"/>
+<circle cx="2420.0" cy="950.0" r="8" fill="#58a6ff"/>
+<circle cx="2714.4" cy="1120.0" r="8" fill="#58a6ff"/>
+<circle cx="2420.0" cy="998.9" r="8" fill="#58a6ff"/>
+<circle cx="2125.6" cy="1120.0" r="8" fill="#58a6ff"/>
+<circle cx="2125.6" cy="780.0" r="8" fill="#58a6ff"/>
+<text x="2420" y="500" font-size="32" font-weight="bold" text-anchor="middle">Fmax</text>
+<text x="2420" y="536" font-size="24" fill="#8b949e" text-anchor="middle">MHz</text>
+<text x="2420" y="570" font-size="27" text-anchor="middle"><tspan fill="#f0883e">81.7 MHz</tspan><tspan fill="#8b949e">  vs  </tspan><tspan fill="#58a6ff">150.4 MHz</tspan></text>
+<text x="2749" y="740" font-size="32" font-weight="bold" text-anchor="start">Effective IPC</text>
+<text x="2749" y="776" font-size="24" fill="#8b949e" text-anchor="start">RV32E instr / cycle</text>
+<text x="2749" y="810" font-size="27" text-anchor="start"><tspan fill="#f0883e">0.223</tspan><tspan fill="#8b949e">  vs  </tspan><tspan fill="#58a6ff">0.018</tspan></text>
+<text x="2749" y="1120" font-size="32" font-weight="bold" text-anchor="start">Area efficiency</text>
+<text x="2749" y="1156" font-size="24" fill="#8b949e" text-anchor="start">1 / area</text>
+<text x="2749" y="1190" font-size="27" text-anchor="start"><tspan fill="#f0883e">529 LUT-eq</tspan><tspan fill="#8b949e">  vs  </tspan><tspan fill="#58a6ff">411 LUT-eq</tspan></text>
+<text x="2420" y="1360" font-size="32" font-weight="bold" text-anchor="middle">Energy efficiency</text>
+<text x="2420" y="1396" font-size="24" fill="#8b949e" text-anchor="middle">RV32E instr / uJ</text>
+<text x="2420" y="1430" font-size="27" text-anchor="middle"><tspan fill="#f0883e">3 358</tspan><tspan fill="#8b949e">  vs  </tspan><tspan fill="#58a6ff">468</tspan></text>
+<text x="2091" y="1120" font-size="32" font-weight="bold" text-anchor="end">Code density</text>
+<text x="2091" y="1156" font-size="24" fill="#8b949e" text-anchor="end">RV32E .text / own .text</text>
+<text x="2091" y="1190" font-size="27" text-anchor="end"><tspan fill="#f0883e">0.91</tspan><tspan fill="#8b949e">  vs  </tspan><tspan fill="#58a6ff">1.00</tspan></text>
+<text x="2091" y="740" font-size="32" font-weight="bold" text-anchor="end">Wait-state tolerance</text>
+<text x="2091" y="776" font-size="24" fill="#8b949e" text-anchor="end">CPI 0 waits / CPI 2 waits</text>
+<text x="2091" y="810" font-size="27" text-anchor="end"><tspan fill="#f0883e">0.57</tspan><tspan fill="#8b949e">  vs  </tspan><tspan fill="#58a6ff">0.96</tspan></text>
+<text x="2420" y="1500" font-size="30" text-anchor="middle"><tspan fill="#f0883e" font-weight="bold">fc32e1s_nano_fpga</tspan><tspan fill="#e6edf3">  18.25 effective MIPS  ·  34.5 MIPS per 1000 LUT-eq</tspan></text>
+<text x="2420" y="1544" font-size="30" text-anchor="middle"><tspan fill="#58a6ff" font-weight="bold">SERV</tspan><tspan fill="#e6edf3">  2.71 effective MIPS  ·  6.6 MIPS per 1000 LUT-eq</tspan></text>
+</g>
+</svg>

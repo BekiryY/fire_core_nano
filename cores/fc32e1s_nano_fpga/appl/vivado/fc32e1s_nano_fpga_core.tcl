@@ -19,5 +19,7 @@ synth_design -top ${name}_core -part xc7z020clg400-1 -mode out_of_context -direc
 report_utilization -file $out/util.rpt
 report_utilization -hierarchical -file $out/util_hier.rpt
 report_timing_summary -file $out/timing.rpt
+set_units -power uW
+report_power -file $out/power.rpt                ;# vectorless (default toggle rates), at the 10 ns constraint
 set wns [get_property SLACK [get_timing_paths -max_paths 1 -setup]]
 puts "RESULT $name $directive WNS $wns est_MHz [format %.1f [expr {1000.0 / (10.0 - $wns)}]]"

@@ -24,6 +24,30 @@ SERV clocks 2.1x (ASIC) and 1.8x (FPGA) higher, but needs 5.6x and 12.4x more cy
 same C program. On sky130 the nano is both smaller and faster; on an FPGA SERV stays the smallest
 core and the nano buys 6.7x the speed for 4.3x the LUTs.
 
+## PPA score
+
+![CPU trade-off chart](../doc/tradeoff/tradeoff.png)
+
+| PPA score | ASIC (sky130) | FPGA (Vivado, core alone) |
+|---|---|---|
+| fc32e1s_nano | **86** | **82** |
+| SERV | 48 | 42 |
+
+Six axes, each higher = better: Fmax, effective IPC, area efficiency, energy efficiency, code
+density, wait-state tolerance (CPI with 0 waits / CPI with 2 waits). The PPA score is the
+weighted geometric mean of each core's six values relative to the better core, x 100 (100 =
+best on every axis). Effective IPC weighs 2: a CPU is a device that executes, and the work per
+cycle is its main figure; Fmax only says whether the core runs at the system clock. Code
+density weighs 2 as well: it is SERV's lead, and program memory often outweighs the core. The
+other axes weigh 1. Chart and score:
+[`doc/tradeoff/tradeoff_chart.py`](../doc/tradeoff/tradeoff_chart.py).
+
+- **ASIC:** the final layouts and signed-off clocks of this page; energy is the measured CPI
+  test energy per RV32E instruction (SERV's instruction count, 3 744).
+- **FPGA:** area in LUT6 equivalents, a RAMB18 counted as 288 LUTs (18 Kb / 64 bits per LUTRAM
+  LUT): nano 529, SERV 123 + 288 = 411. Energy is an estimate: Vivado's vectorless dynamic power
+  at 100 MHz (default toggle rates), nano 6 652.5 uW, SERV 3 859.6 uW, per RV32E instruction.
+
 ## Software and method
 
 `cpi_bench`: one C program (crc, fib, qsort, bsearch, list, interp, parse kernels), GCC 13.2.0
@@ -170,6 +194,9 @@ Performance, `cpi_bench`, at each core's estimated Fmax (`AreaOptimized_high`):
 - **SERV configuration.** Upstream `serv_rf_top` (`PRE_REGISTER = 1`, `RESET_STRATEGY = "MINI"`,
   as in the board top) with `RESET_PC = 0`, `WITH_CSR = 0`, running the RV32E program. Its cycle
   counts match the sky130 SERV exactly (CPI test: 183 729 cycles on both).
+- **Power, estimated.** Both scripts end with `report_power` (vectorless, default toggle rates,
+  at the 10 ns constraint): dynamic power nano 6 652.5 uW, SERV 3 859.6 uW. Used only for the
+  FPGA energy axis of the [PPA score](#ppa-score).
 
 ### Board tops on Gowin GW2A-18
 
