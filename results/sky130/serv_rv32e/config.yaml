@@ -1,3 +1,5 @@
+# ARCHIVED copy of the config that produced this layout; its dir:: paths are relative to
+# cores/serv/appl/sky130_latch_rf/ -- run the flow from there.
 # SERV (serv_rf_top_latch: WITH_CSR = 0, register file = common/rtl/regfile/rf32x32_2r1w_latch.sv,
 # 992 sky130_fd_sc_hd__dlxtp_1 latches behind 31 dlclkp_1 clock gates) -- LibreLane Classic flow,
 # sky130A / sky130_fd_sc_hd, standalone (user 2026-11-08: "a complete serv asic run", density

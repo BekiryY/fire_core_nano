@@ -1,3 +1,5 @@
+# ARCHIVED copy of the config that produced this layout; its dir:: paths are relative to
+# cores/fc32e1s_nano_asic/appl/sky130_core/ -- run the flow from there.
 # fc32e1s_nano_asic core alone -- LibreLane Classic flow, sky130A / sky130_fd_sc_hd (user, 2026-10-30:
 # "synthesize ... alone, 60 % density, as small as possible"). RV32E (nano, no C).
 # Latch register file behind library clock gates (FC32E1S_NANO_ASIC_SKY130_ICG); setup slack margins 0
