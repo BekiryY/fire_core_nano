@@ -10,10 +10,10 @@
 #  run_spike.sh runs this first, then assembles, links and register-scans the
 #  result like any other test.
 #
-#  The 6-register convention (x0, ra, sp, a0..a2) comes from the -ffixed-*
-#  flags below. They cannot stop GCC from passing a 4th integer argument in a3:
-#  keep functions at <= 3 integer arguments (run_spike.sh's register scan
-#  catches a violation).
+#  Compiler: riscv32-nano-elf-gcc -mnano (../../../../../../toolchain, release
+#  tarball or build.sh), the 6-register calling convention itself (x0, ra, sp,
+#  a0..a2; 4+ arguments, variadic, 64-bit and struct arguments on the stack).
+#  CC overrides it; run_spike.sh passes its own CC.
 # ============================================================
 import glob
 import os
@@ -23,14 +23,12 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "assembly")
-CC = os.environ.get("CC", "riscv64-unknown-elf-gcc")
+CC = os.environ.get("CC") or os.path.expanduser("~/opt/riscv32-nano/bin/riscv32-nano-elf-gcc")
 
 OPTS = ["O2", "Os"]
 CFLAGS = ["-march=rv32e", "-mabi=ilp32e", "-ffreestanding", "-fno-builtin",
           "-fno-tree-loop-distribute-patterns",       # no memset/memcpy calls invented
-          "-fno-ident", "-fno-asynchronous-unwind-tables",
-          "-ffixed-gp", "-ffixed-tp", "-ffixed-t0", "-ffixed-t1", "-ffixed-t2",
-          "-ffixed-s0", "-ffixed-s1", "-ffixed-a3", "-ffixed-a4", "-ffixed-a5"]
+          "-fno-ident", "-fno-asynchronous-unwind-tables", "-mnano"]
 
 
 def main():

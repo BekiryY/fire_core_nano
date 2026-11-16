@@ -60,9 +60,12 @@ CFG_DIR="$HERE"
 # shellcheck source=core.cfg
 source "$HERE/core.cfg"
 
-CC=${CC:-riscv64-unknown-elf-gcc}
-OBJDUMP=${OBJDUMP:-riscv64-unknown-elf-objdump}
-OBJCOPY=${OBJCOPY:-riscv64-unknown-elf-objcopy}
+# riscv32-nano-elf (-mnano, ../../../../../toolchain): its libgcc keeps to x0 ra sp a0..a2
+NANO=${NANO:-$HOME/opt/riscv32-nano/bin/riscv32-nano-elf-}
+CC=${CC:-${NANO}gcc}
+OBJDUMP=${OBJDUMP:-${NANO}objdump}
+OBJCOPY=${OBJCOPY:-${NANO}objcopy}
+export CC
 SPIKE=${SPIKE:-spike}
 SPIKE_TIMEOUT=${SPIKE_TIMEOUT:-30}   # seconds; see run_one()
 
@@ -87,8 +90,8 @@ if [ "$missing" = 1 ]; then
   cat <<'EOF'
 
 Required:
-  riscv64-unknown-elf-gcc  (Ubuntu: apt install gcc-riscv64-unknown-elf)
-                           with the rv32i/ilp32 multilib
+  riscv32-nano-elf-gcc     the -mnano toolchain: toolchain/ of this repository (release
+                           tarball in ~/opt/riscv32-nano, or NANO=<prefix>)
   spike                    https://github.com/riscv-software-src/riscv-isa-sim
 Does not run natively on Windows; use WSL or Linux.
 EOF
@@ -168,7 +171,7 @@ run_one() {
   # --- assemble ---
   if ! "$CC" -march="$march" -mabi="$MABI" -nostdlib -nostartfiles -g \
              -x assembler-with-cpp -I env $extra_inc -T env/core_test.ld \
-             "$src" -o "$elf" 2> "$err"; then
+             "$src" -lgcc -o "$elf" 2> "$err"; then
     echo "${RED}BUILD ERROR${RST}"
     sed 's/^/    /' "$err"
     n_build_err=$((n_build_err + 1))

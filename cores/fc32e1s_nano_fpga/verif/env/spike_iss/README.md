@@ -12,7 +12,8 @@ SIM_SEED=7 ./run_core_tests.sh    # another random AXI wait-state pattern
 AXI_WAITS=none ./run_core_tests.sh
 ```
 
-Needs `riscv64-unknown-elf-gcc` and `spike` (Linux or WSL; from Git Bash on Windows the Spike
+Needs `riscv32-nano-elf-gcc` (`-mnano`, [`toolchain/`](../../../../../toolchain); default
+`~/opt/riscv32-nano`, `NANO=<prefix>` for another) and `spike` (Linux or WSL; from Git Bash on Windows the Spike
 stage runs in WSL automatically) and Vivado's `xvlog` / `xelab` / `xsim` on PATH. Outputs go
 to `../../build/`.
 

@@ -48,13 +48,14 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # Where does each stage run
 # ------------------------------------------------------------
 USE_WSL=0
-if ! have spike || ! have riscv64-unknown-elf-gcc; then
+NANO_CC=${NANO:-$HOME/opt/riscv32-nano/bin/riscv32-nano-elf-}gcc
+if ! have spike || ! have "$NANO_CC"; then
   if have wsl.exe && wsl.exe -e bash -lc 'command -v spike >/dev/null' >/dev/null 2>&1; then
     USE_WSL=1
     WSL_HERE="$(wsl.exe -e wslpath -u "$(cygpath -w "$HERE")" 2>/dev/null | tr -d '\r')"
     [ -n "$WSL_HERE" ] || { echo "${RED}[!] cannot resolve WSL path (cygpath/wslpath)${RST}"; exit 127; }
   else
-    echo "${RED}[!] spike / riscv64-unknown-elf-gcc not found, not in WSL either${RST}"; exit 127
+    echo "${RED}[!] spike / riscv32-nano-elf-gcc not found, not in WSL either${RST}"; exit 127
   fi
 fi
 
